@@ -1,0 +1,34 @@
+# Python / Odoo dev
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual env / env files
+.venv/
+.env
+.env.*
+
+# Logs / runtime artifacts
+*.log
+*.pid
+
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Editors / OS
+.idea/
+.vscode/
+*.iml
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# Common local configs (often contain secrets)
+odoo.conf
+
+# Local assistant/tool logs
+logs_*.txt

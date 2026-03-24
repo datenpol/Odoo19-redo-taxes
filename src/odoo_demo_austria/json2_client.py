@@ -57,7 +57,18 @@ class Json2Client:
             raw = exc.read()
             text = raw.decode("utf-8", errors="replace") if raw else exc.reason
             raise Json2ClientError(f"HTTP {exc.code} calling {model}.{method}: {text}") from None
-        return json.loads(raw.decode("utf-8")) if raw else None
+        except urllib.error.URLError as exc:
+            raise Json2ClientError(
+                f"Transport error calling {model}.{method}: {exc.reason}"
+            ) from None
+        if not raw:
+            return None
+        try:
+            return json.loads(raw.decode("utf-8"))
+        except json.JSONDecodeError as exc:
+            raise Json2ClientError(
+                f"Invalid JSON response calling {model}.{method}: {exc}"
+            ) from None
 
     def context_get(self) -> dict[str, Any]:
         result = self.call("res.users", "context_get", {})

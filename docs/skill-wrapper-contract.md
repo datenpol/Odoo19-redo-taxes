@@ -7,6 +7,30 @@
 - No GUI.
 - Python installation on operator machines is acceptable.
 
+## Rollout Status
+
+The end-state operator contract stays the same, but the implementation lands in stages.
+
+Reason:
+
+- The current cosmetic engine still depends on frozen database IDs in the mapping spec.
+- A public `doctor` command would therefore be misleading until the resolver layer can find all required targets dynamically.
+
+Implementation order:
+
+1. Fix wrapper/bootstrap behavior.
+2. Freeze `--format json|text` and exit codes.
+3. Add public `run`.
+4. Replace fixed-ID assumptions with dynamic resolution.
+5. Make `doctor` public only after dynamic resolution is real.
+6. Remove legacy development-only surfaces and add the actual Codex/Claude skill assets.
+
+During this transition:
+
+- `run`, `apply`, and `validate` are the public engine commands.
+- `doctor` remains internal.
+- Legacy developer surfaces such as `plan`, `--mode`, and `--dry-run` may exist temporarily, but they are not part of the operator contract and must not be used by skill wrappers.
+
 ## Operator UX
 
 Normal invocation:
@@ -21,12 +45,15 @@ The wrapper should assume cosmetic mode and execute the full safe flow:
 2. `apply`
 3. `validate`
 
+Until `doctor` is made public, the wrapper should call `run` instead of stitching stages together itself.
+
 Optional support commands for consultants:
 
 ```text
-$datenpol-euro-demo doctor URL API_KEY
 $datenpol-euro-demo validate URL API_KEY
 ```
+
+`doctor` becomes an optional consultant support command only after the resolver refactor is complete.
 
 ## Architecture
 
@@ -39,7 +66,15 @@ Do not put Odoo business logic into the skill instructions. Keep the logic in Py
 
 ## Engine Commands
 
-The target engine contract is:
+Current staged public engine contract:
+
+```text
+odoo-demo-austria apply --base-url URL [--format text|json]
+odoo-demo-austria validate --base-url URL [--format text|json]
+odoo-demo-austria run --base-url URL [--format text|json]
+```
+
+Target end-state engine contract:
 
 ```text
 odoo-demo-austria doctor --base-url URL
@@ -65,6 +100,7 @@ Advanced only:
 - Read-only.
 - Resolves all required cosmetic targets dynamically.
 - Fails before write if required targets are missing or ambiguous.
+- Not public until the resolver layer replaces fixed-ID assumptions.
 
 `apply`
 
@@ -102,6 +138,8 @@ The engine should support:
 
 Both skill wrappers should consume the same machine-readable JSON contract.
 
+JSON output is the authoritative wrapper contract. Text output is only for human operators.
+
 Expected top-level fields:
 
 - `command`
@@ -109,12 +147,26 @@ Expected top-level fields:
 - `base_url`
 - `status`
 - `summary`
+- `exit_code`
 
 Expected nested sections:
 
 - `preflight`
 - `apply`
 - `validation`
+
+Expected nested section fields:
+
+- `status`
+- `summary`
+- `messages`
+
+Command-specific optional fields:
+
+- `operation_count`
+- `issue_count`
+
+Public commands in this rollout always emit `mode = cosmetic`.
 
 ## Non-Goals For V1
 

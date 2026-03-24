@@ -91,6 +91,30 @@ The mapping spec covers:
    - verification prompt
 7. Validate in `codexvalidation` from a clean start and compare results against the mapping spec instead of eyeballing.
 
+## Operator Rollout Order
+
+The implementation order for the operator-facing engine is intentionally staged so we do not freeze the wrong contract too early.
+
+1. Fix wrapper/bootstrap behavior and make the local wrapper dependable.
+2. Freeze one machine-readable JSON schema plus stable exit codes.
+3. Add public `run` so operators and future skill wrappers can use one command immediately.
+4. Replace fixed database IDs with real dynamic target resolution.
+5. Make `doctor` public only after step 4 is complete.
+6. Remove `report-aware`, fixed-ID remnants, and legacy development-only CLI surfaces.
+7. Add the actual Codex and Claude skill assets plus the operator runbook.
+
+Why this order matters:
+
+- The current cosmetic flow still assumes frozen record IDs in the mapping spec.
+- A public `doctor` before dynamic resolution exists would look correct in the interface while still behaving like a legacy fixed-environment check underneath.
+- `run` can be made useful earlier because it is just orchestrating preflight, apply, and validate around the existing cosmetic engine.
+
+Temporary rule during the rollout:
+
+- `plan`, `--mode`, and `--dry-run` are legacy development aids only.
+- They are not part of the operator contract.
+- Skill wrappers must target only the staged public contract.
+
 ## Target Engine Contract
 
 The shared Python engine should expose:
@@ -99,6 +123,14 @@ The shared Python engine should expose:
 - `apply`
 - `validate`
 - `run`
+
+Staged public contract before the resolver refactor is complete:
+
+- `apply`
+- `validate`
+- `run`
+
+`doctor` stays internal until dynamic resolution is real.
 
 Normal operator flow for skills:
 

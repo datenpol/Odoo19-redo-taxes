@@ -25,9 +25,9 @@ python tools/odoo_json2.py context
 The production-oriented patcher lives under `src/odoo_demo_austria` and can be run directly through the wrapper script:
 
 ```powershell
-python tools/odoo_demo_austria.py plan --base-url https://codexplayground.odoo19.at
-python tools/odoo_demo_austria.py apply --mode cosmetic --dry-run --base-url https://codexplayground.odoo19.at
-python tools/odoo_demo_austria.py validate --mode cosmetic --base-url https://codexplayground.odoo19.at
+python tools/odoo_demo_austria.py run --format json --base-url https://codexplayground.odoo19.at
+python tools/odoo_demo_austria.py validate --format text --base-url https://codexplayground.odoo19.at
+python tools/odoo_demo_austria.py apply --format text --base-url https://codexplayground.odoo19.at
 ```
 
 Target direction for operator-facing skills:
@@ -41,9 +41,11 @@ The planned shared engine contract for the skill wrappers is documented in `docs
 Notes:
 
 - The patcher reads the API key from `ODOO_API_KEY` by default.
-- `plan` and `apply --dry-run` are safe discovery steps and do not change the environment.
 - `cosmetic` now covers company identity, currencies, journals, Austrian-looking fiscal positions, tax labels, and Austrian 4-digit account codes.
 - The intended product direction is now cosmetic-only for staff-facing operation.
+- `run` is the first public one-command surface for operators and future skill wrappers.
+- `doctor` is intentionally not public yet because the current cosmetic flow still depends on fixed database IDs underneath.
+- Legacy developer surfaces such as `plan`, `--mode`, and `--dry-run` may remain temporarily during the refactor, but they are not part of the wrapper contract.
 - Trusted partner bank accounts cannot have `acc_number` changed in place. The patcher detects that Odoo lock and skips immutable bank-account fields instead of failing the whole run.
 - On Odoo 19 `JSON-2`, `create` expects `vals_list`, not `vals`. The client already handles that quirk.
 

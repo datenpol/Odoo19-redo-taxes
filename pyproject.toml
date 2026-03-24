@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odoo-demo-austria"
+version = "0.1.0"
+description = "Production-oriented patcher for Austrianizing Odoo 19 demo accounting cosmetics."
+readme = "docs/odoo19-demo-austria-handoff-plan.md"
+requires-python = ">=3.11"
+dependencies = [
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.11",
+  "mypy>=1.10",
+  "types-PyYAML>=6.0",
+]
+
+[project.scripts]
+odoo-demo-austria = "odoo_demo_austria.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["C90", "E", "F", "I", "W"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src", "tests", "tools"]
+mypy_path = ["src"]
+explicit_package_bases = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true

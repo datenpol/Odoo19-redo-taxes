@@ -1,0 +1,17 @@
+pyproject.toml
+docs/odoo19-demo-austria-handoff-plan.md
+src/odoo_demo_austria/__init__.py
+src/odoo_demo_austria/cli.py
+src/odoo_demo_austria/json2_client.py
+src/odoo_demo_austria/models.py
+src/odoo_demo_austria/planner.py
+src/odoo_demo_austria/spec_loader.py
+src/odoo_demo_austria/validator.py
+src/odoo_demo_austria.egg-info/PKG-INFO
+src/odoo_demo_austria.egg-info/SOURCES.txt
+src/odoo_demo_austria.egg-info/dependency_links.txt
+src/odoo_demo_austria.egg-info/entry_points.txt
+src/odoo_demo_austria.egg-info/requires.txt
+src/odoo_demo_austria.egg-info/top_level.txt
+tests/test_planner.py
+tests/test_spec_loader.py

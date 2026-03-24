@@ -13,9 +13,18 @@ SPEC_PATH = ROOT / "data" / "austria-cosmetic-mapping-spec.draft.yaml"
 
 
 class FakeResolverClient:
-    def __init__(self, spec: Any, *, use_target_names: bool) -> None:
+    def __init__(
+        self,
+        spec: Any,
+        *,
+        use_target_names: bool,
+        use_umlaut_source_names: bool = False,
+        use_translated_target_names: bool = False,
+    ) -> None:
         self.spec = spec
         self.use_target_names = use_target_names
+        self.use_umlaut_source_names = use_umlaut_source_names
+        self.use_translated_target_names = use_translated_target_names
 
     def search_read(
         self,
@@ -93,24 +102,39 @@ class FakeResolverClient:
 
     def _tax_record(self, domain: list[Any]) -> dict[str, Any]:
         spec = self._single_tax_spec(domain)
+        target_name = (
+            spec.cosmetic.target_name.value_for("de_DE")
+            if self.use_translated_target_names
+            else spec.cosmetic.target_name.base
+        )
         return {
             "id": spec.record_id + 100,
-            "name": self._name(spec.source_name, spec.cosmetic.target_name.base),
+            "name": self._name(spec.source_name, target_name),
             "tax_group_id": [self._resolved_tax_group_id(spec.cosmetic.target_group_id), "group"],
         }
 
     def _journal_record(self, domain: list[Any]) -> dict[str, Any]:
         spec = self._match_by_name(self.spec.journals, self._domain_value(domain, "name"))
+        target_name = (
+            spec.target_name.value_for("de_DE")
+            if self.use_translated_target_names
+            else spec.target_name.base
+        )
         return {
             "id": spec.record_id + 1_000,
-            "name": self._name(spec.source_name, spec.target_name.base),
+            "name": self._name(spec.source_name, target_name),
         }
 
     def _fiscal_position_records(self, domain: list[Any]) -> list[dict[str, Any]]:
         spec = self._match_by_name(self.spec.fiscal_positions, self._domain_value(domain, "name"))
         if spec is None or spec.create_if_missing:
             return []
-        name = self._name(spec.source_name, spec.target_name.base)
+        target_name = (
+            spec.target_name.value_for("de_DE")
+            if self.use_translated_target_names
+            else spec.target_name.base
+        )
+        name = self._name(spec.source_name, target_name)
         return [{"id": spec.record_id + 2_000, "name": name}]
 
     def _account_records(self, domain: list[Any]) -> list[dict[str, Any]]:
@@ -123,7 +147,12 @@ class FakeResolverClient:
         return [
             {
                 "id": item.record_id + 3_000,
-                "name": self._name(item.source_name, item.target_name.base),
+                "name": self._name(
+                    item.source_name,
+                    item.target_name.value_for("de_DE")
+                    if self.use_translated_target_names
+                    else item.target_name.base,
+                ),
                 "code": item.code,
             }
             for item in matches
@@ -132,9 +161,14 @@ class FakeResolverClient:
     def _tax_group_record(self, group_id: int) -> dict[str, Any]:
         group_ref = group_id - 5_000
         spec = next(item for item in self.spec.tax_groups if item.record_id == group_ref)
+        target_name = (
+            spec.cosmetic.target_name.value_for("de_DE")
+            if self.use_translated_target_names
+            else spec.cosmetic.target_name.base
+        )
         return {
             "id": group_id,
-            "name": self._name(spec.source_name, spec.cosmetic.target_name.base),
+            "name": self._name(spec.source_name, target_name),
         }
 
     def _single_tax_spec(self, domain: list[Any]) -> Any:
@@ -172,6 +206,15 @@ class FakeResolverClient:
     def _name(self, source_name: str | None, target_name: str) -> str:
         if self.use_target_names or source_name is None:
             return target_name
+        if self.use_umlaut_source_names:
+            return (
+                source_name.replace("ae", "ä")
+                .replace("oe", "ö")
+                .replace("ue", "ü")
+                .replace("Ae", "Ä")
+                .replace("Oe", "Ö")
+                .replace("Ue", "Ü")
+            )
         return source_name
 
 
@@ -201,6 +244,34 @@ class ResolverTests(unittest.TestCase):
         self.assertEqual(resolved.journals[-1].record_id, 1_021)
         self.assertEqual(resolved.accounts[-1].record_id, 3_050)
         self.assertIsNone(resolved.fiscal_positions[3].record_id)
+
+    def test_resolves_translated_target_state_after_cosmetic_rename(self) -> None:
+        spec = load_spec(SPEC_PATH)
+        client = cast(
+            Json2Client,
+            FakeResolverClient(
+                spec,
+                use_target_names=True,
+                use_translated_target_names=True,
+            ),
+        )
+        resolved = resolve_cosmetic_targets(client, spec)
+
+        self.assertEqual(resolved.taxes[1].record_id, 102)
+        self.assertEqual(resolved.journals[-1].record_id, 1_021)
+        self.assertEqual(resolved.accounts[-1].record_id, 3_050)
+
+    def test_resolves_ascii_spec_names_against_umlaut_source_records(self) -> None:
+        spec = load_spec(SPEC_PATH)
+        client = cast(
+            Json2Client,
+            FakeResolverClient(spec, use_target_names=False, use_umlaut_source_names=True),
+        )
+        resolved = resolve_cosmetic_targets(client, spec)
+
+        by_source_name = {item.spec.source_name: item.record_id for item in resolved.journals}
+        self.assertEqual(by_source_name["Bargeld (Kleidergeschaeft)"], 1_017)
+        self.assertEqual(by_source_name["Bargeld (Baeckerei)"], 1_018)
 
 
 if __name__ == "__main__":

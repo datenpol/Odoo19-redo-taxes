@@ -31,9 +31,7 @@ from .models import (
     SourceEnvironment,
     TaxCosmeticSpec,
     TaxGroupCosmeticSpec,
-    TaxGroupReportAwareSpec,
     TaxGroupSpec,
-    TaxReportAwareSpec,
     TaxSpec,
 )
 
@@ -104,10 +102,6 @@ def parse_identity(root: dict[str, Any]) -> IdentitySpec:
                 company.get("target_company_name"),
                 "identity.company.target_company_name",
             ),
-            target_display_name=require_str(
-                company.get("target_display_name"),
-                "identity.company.target_display_name",
-            ),
             target_partner_name=require_str(
                 company.get("target_partner_name"),
                 "identity.company.target_partner_name",
@@ -158,10 +152,6 @@ def parse_tax_groups(root: dict[str, Any]) -> tuple[TaxGroupSpec, ...]:
     for index, entry in enumerate(require_list(root.get("tax_groups"), "tax_groups")):
         item = require_mapping(entry, f"tax_groups[{index}]")
         cosmetic = require_mapping(item.get("cosmetic"), f"tax_groups[{index}].cosmetic")
-        report_aware = require_mapping(
-            item.get("report_aware"),
-            f"tax_groups[{index}].report_aware",
-        )
         tax_groups.append(
             TaxGroupSpec(
                 record_id=require_int(item.get("id"), f"tax_groups[{index}].id"),
@@ -175,16 +165,6 @@ def parse_tax_groups(root: dict[str, Any]) -> tuple[TaxGroupSpec, ...]:
                         f"tax_groups[{index}].cosmetic.target_name",
                     )
                 ),
-                report_aware=TaxGroupReportAwareSpec(
-                    target_country_id=require_int(
-                        report_aware.get("target_country_id"),
-                        f"tax_groups[{index}].report_aware.target_country_id",
-                    ),
-                    reference_group_id=require_int(
-                        report_aware.get("reference_group_id"),
-                        f"tax_groups[{index}].report_aware.reference_group_id",
-                    ),
-                ),
             )
         )
     return tuple(tax_groups)
@@ -195,7 +175,6 @@ def parse_taxes(root: dict[str, Any]) -> tuple[TaxSpec, ...]:
     for index, entry in enumerate(require_list(root.get("taxes"), "taxes")):
         item = require_mapping(entry, f"taxes[{index}]")
         cosmetic = require_mapping(item.get("cosmetic"), f"taxes[{index}].cosmetic")
-        report_aware = require_mapping(item.get("report_aware"), f"taxes[{index}].report_aware")
         taxes.append(
             TaxSpec(
                 record_id=require_int(item.get("id"), f"taxes[{index}].id"),
@@ -203,14 +182,6 @@ def parse_taxes(root: dict[str, Any]) -> tuple[TaxSpec, ...]:
                 source_type_tax_use=require_str(
                     item.get("source_type_tax_use"),
                     f"taxes[{index}].source_type_tax_use",
-                ),
-                default_company_sale_tax=require_bool(
-                    item.get("default_company_sale_tax", False),
-                    f"taxes[{index}].default_company_sale_tax",
-                ),
-                default_company_purchase_tax=require_bool(
-                    item.get("default_company_purchase_tax", False),
-                    f"taxes[{index}].default_company_purchase_tax",
                 ),
                 cosmetic=TaxCosmeticSpec(
                     target_name=parse_translated_text(
@@ -234,48 +205,6 @@ def parse_taxes(root: dict[str, Any]) -> tuple[TaxSpec, ...]:
                         f"taxes[{index}].cosmetic.target_group_id",
                     ),
                 ),
-                report_aware=TaxReportAwareSpec(
-                    target_country_id=require_int(
-                        report_aware.get("target_country_id"),
-                        f"taxes[{index}].report_aware.target_country_id",
-                    ),
-                    reference_tax_id=require_int(
-                        report_aware.get("reference_tax_id"),
-                        f"taxes[{index}].report_aware.reference_tax_id",
-                    ),
-                    reference_tax_name=require_str(
-                        report_aware.get("reference_tax_name"),
-                        f"taxes[{index}].report_aware.reference_tax_name",
-                    ),
-                    reference_invoice_tags=require_int_tuple(
-                        report_aware.get("reference_invoice_tags", []),
-                        f"taxes[{index}].report_aware.reference_invoice_tags",
-                    ),
-                    reference_tax_tags=require_int_tuple(
-                        report_aware.get("reference_tax_tags", []),
-                        f"taxes[{index}].report_aware.reference_tax_tags",
-                    ),
-                    target_tax_account_id=optional_int(
-                        report_aware.get("target_tax_account_id"),
-                        f"taxes[{index}].report_aware.target_tax_account_id",
-                    ),
-                    target_tax_account_name=optional_str(
-                        report_aware.get("target_tax_account_name"),
-                        f"taxes[{index}].report_aware.target_tax_account_name",
-                    ),
-                    candidate_tax_account_id=optional_int(
-                        report_aware.get("candidate_tax_account_id"),
-                        f"taxes[{index}].report_aware.candidate_tax_account_id",
-                    ),
-                    candidate_tax_account_name=optional_str(
-                        report_aware.get("candidate_tax_account_name"),
-                        f"taxes[{index}].report_aware.candidate_tax_account_name",
-                    ),
-                    note=optional_str(
-                        report_aware.get("note"),
-                        f"taxes[{index}].report_aware.note",
-                    ),
-                ),
             )
         )
     return tuple(taxes)
@@ -295,10 +224,6 @@ def parse_journals(root: dict[str, Any]) -> tuple[JournalSpec, ...]:
                 target_name=parse_translated_text(
                     item.get("target_name"),
                     f"journals[{index}].target_name",
-                ),
-                reference_journal_id=optional_int(
-                    item.get("reference_journal_id"),
-                    f"journals[{index}].reference_journal_id",
                 ),
             )
         )

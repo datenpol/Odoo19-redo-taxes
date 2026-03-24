@@ -109,10 +109,6 @@ def parse_currency_record(value: Any, path: str) -> CurrencyRecordSpec:
             f"{path}.target_subunit_label",
         ),
         target_position=require_str(mapping.get("target_position"), f"{path}.target_position"),
-        keep_rate_as_is=require_bool(
-            mapping.get("keep_rate_as_is", True),
-            f"{path}.keep_rate_as_is",
-        ),
     )
 
 

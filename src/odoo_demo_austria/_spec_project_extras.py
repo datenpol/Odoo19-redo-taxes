@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from ._spec_support import (
-    optional_int,
     parse_translated_text,
     require_int,
     require_list,
@@ -69,10 +68,6 @@ def parse_accounts(chart: dict[str, Any]) -> tuple[AccountSpec, ...]:
                     item.get("posted_lines"),
                     f"chart.explicit_accounts[{index}].posted_lines",
                 ),
-                reference_account_id=optional_int(
-                    item.get("reference_account_id"),
-                    f"chart.explicit_accounts[{index}].reference_account_id",
-                ),
             )
         )
     return tuple(accounts)
@@ -81,22 +76,6 @@ def parse_accounts(chart: dict[str, Any]) -> tuple[AccountSpec, ...]:
 def parse_validation(root: dict[str, Any]) -> ValidationSpec:
     validation = require_mapping(root.get("validation"), "validation")
     return ValidationSpec(
-        expected_company_country_id=require_int(
-            validation.get("expected_company_country_id"),
-            "validation.expected_company_country_id",
-        ),
-        expected_company_currency_id_after_cosmetic=require_int(
-            validation.get("expected_company_currency_id_after_cosmetic"),
-            "validation.expected_company_currency_id_after_cosmetic",
-        ),
-        expected_default_sale_tax_id=require_int(
-            validation.get("expected_default_sale_tax_id"),
-            "validation.expected_default_sale_tax_id",
-        ),
-        expected_default_purchase_tax_id=require_int(
-            validation.get("expected_default_purchase_tax_id"),
-            "validation.expected_default_purchase_tax_id",
-        ),
         api_assertions=tuple(
             require_str(item, "validation.api_assertions[]")
             for item in require_list(

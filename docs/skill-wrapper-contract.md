@@ -9,27 +9,22 @@
 
 ## Rollout Status
 
-The end-state operator contract stays the same, but the implementation lands in stages.
+The staged cleanup has now reached the clean cosmetic engine contract.
 
-Reason:
+Completed:
 
-- The current cosmetic engine still depends on frozen database IDs in the mapping spec.
-- A public `doctor` command would therefore be misleading until the resolver layer can find all required targets dynamically.
+1. Wrapper/bootstrap behavior is stable through the local Python wrapper.
+2. `--format json|text` and exit codes are frozen.
+3. `run` is public.
+4. Cosmetic target resolution is dynamic for the runtime path.
+5. `doctor` is public and read-only.
+6. Report-aware runtime surfaces are removed from the operator contract.
 
-Implementation order:
+Still pending:
 
-1. Fix wrapper/bootstrap behavior.
-2. Freeze `--format json|text` and exit codes.
-3. Add public `run`.
-4. Replace fixed-ID assumptions with dynamic resolution.
-5. Make `doctor` public only after dynamic resolution is real.
-6. Remove legacy development-only surfaces and add the actual Codex/Claude skill assets.
-
-During this transition:
-
-- `run`, `apply`, and `validate` are the public engine commands.
-- `doctor` remains internal.
-- Legacy developer surfaces such as `plan`, `--mode`, and `--dry-run` may exist temporarily, but they are not part of the operator contract and must not be used by skill wrappers.
+- Add the actual Codex and Claude skill assets.
+- Add the operator runbook.
+- Run the final live proof in `codexvalidation`.
 
 ## Operator UX
 
@@ -42,22 +37,14 @@ $datenpol-euro-demo URL API_KEY
 Current rollout behavior:
 
 - The wrapper calls `run`.
-- The wrapper does not call `doctor` directly.
 - The wrapper assumes cosmetic-only operation.
-
-End-state behavior after the resolver refactor:
-
-1. `doctor`
-2. `apply`
-3. `validate`
 
 Optional support commands for consultants:
 
 ```text
+$datenpol-euro-demo doctor URL API_KEY
 $datenpol-euro-demo validate URL API_KEY
 ```
-
-`doctor` becomes an optional consultant support command only after the resolver refactor is complete and the command is made public.
 
 ## Architecture
 
@@ -70,21 +57,13 @@ Do not put Odoo business logic into the skill instructions. Keep the logic in Py
 
 ## Engine Commands
 
-Current staged public engine contract:
+Current public engine contract:
 
 ```text
+odoo-demo-austria doctor --base-url URL [--format text|json]
 odoo-demo-austria apply --base-url URL [--format text|json]
 odoo-demo-austria validate --base-url URL [--format text|json]
 odoo-demo-austria run --base-url URL [--format text|json]
-```
-
-Target end-state engine contract:
-
-```text
-odoo-demo-austria doctor --base-url URL
-odoo-demo-austria apply --base-url URL
-odoo-demo-austria validate --base-url URL
-odoo-demo-austria run --base-url URL
 ```
 
 Authentication:
@@ -104,7 +83,6 @@ Advanced only:
 - Read-only.
 - Resolves all required cosmetic targets dynamically.
 - Fails before write if required targets are missing or ambiguous.
-- Not public until the resolver layer replaces fixed-ID assumptions.
 
 `apply`
 
@@ -118,9 +96,9 @@ Advanced only:
 
 `run`
 
-- In the current rollout it is the only public one-command operator path.
-- In the end-state contract it executes `doctor -> apply -> validate`.
-- In the end-state contract it aborts before write if `doctor` fails.
+- It is the default one-command operator path.
+- It performs the same read-only preflight as `doctor` before any write.
+- It aborts before write if preflight fails.
 - This is the default path for both skill wrappers.
 
 ## Exit Codes
@@ -171,7 +149,7 @@ Command-specific optional fields:
 - `operation_count`
 - `issue_count`
 
-Public commands in this rollout always emit `mode = cosmetic`.
+Public commands emit `mode = cosmetic`.
 
 ## Non-Goals For V1
 

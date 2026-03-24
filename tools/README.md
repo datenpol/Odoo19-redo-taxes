@@ -26,6 +26,7 @@ The production-oriented patcher lives under `src/odoo_demo_austria` and can be r
 
 ```powershell
 python tools/odoo_demo_austria.py run --format json --base-url https://codexplayground.odoo19.at
+python tools/odoo_demo_austria.py doctor --format text --base-url https://codexplayground.odoo19.at
 python tools/odoo_demo_austria.py validate --format text --base-url https://codexplayground.odoo19.at
 python tools/odoo_demo_austria.py apply --format text --base-url https://codexplayground.odoo19.at
 ```
@@ -43,9 +44,9 @@ Notes:
 - The patcher reads the API key from `ODOO_API_KEY` by default.
 - `cosmetic` now covers company identity, currencies, journals, Austrian-looking fiscal positions, tax labels, and Austrian 4-digit account codes.
 - The intended product direction is now cosmetic-only for staff-facing operation.
-- `run` is the first public one-command surface for operators and future skill wrappers.
-- `doctor` is intentionally not public yet because the current cosmetic flow still depends on fixed database IDs underneath.
-- Legacy developer surfaces such as `plan`, `--mode`, and `--dry-run` may remain temporarily during the refactor, but they are not part of the wrapper contract.
+- Dynamic target resolution now powers the runtime path, so `doctor`, `apply`, `validate`, and `run` all operate on the cleaned cosmetic contract.
+- `run` remains the default one-command surface for operators and future skill wrappers.
+- Report-aware runtime behavior is not part of the operator contract.
 - Trusted partner bank accounts cannot have `acc_number` changed in place. The patcher detects that Odoo lock and skips immutable bank-account fields instead of failing the whole run.
 - On Odoo 19 `JSON-2`, `create` expects `vals_list`, not `vals`. The client already handles that quirk.
 

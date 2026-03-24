@@ -31,7 +31,32 @@ class CliTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0)
-        self.assertIn("{apply,validate,run}", result.stdout)
+        self.assertIn("{doctor,apply,validate,run}", result.stdout)
+
+    def test_doctor_json_success_contract(self) -> None:
+        with (
+            patch("odoo_demo_austria.cli.load_spec", return_value=object()),
+            patch("odoo_demo_austria.cli._build_client", return_value=FakeClient()),
+            patch(
+                "odoo_demo_austria._cli_runtime._build_operations",
+                return_value=[object(), object(), object()],
+            ),
+        ):
+            stdout = StringIO()
+            with redirect_stdout(stdout):
+                exit_code = cli.main(
+                    ["doctor", "--format", "json", "--base-url", "https://example.odoo.test"]
+                )
+
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(payload["command"], "doctor")
+        self.assertEqual(payload["mode"], "cosmetic")
+        self.assertEqual(payload["status"], "success")
+        self.assertEqual(payload["preflight"]["status"], "success")
+        self.assertEqual(payload["preflight"]["operation_count"], 3)
+        self.assertEqual(payload["apply"]["status"], "skipped")
+        self.assertEqual(payload["validation"]["status"], "skipped")
 
     def test_run_json_success_contract(self) -> None:
         with (

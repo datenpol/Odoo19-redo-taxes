@@ -95,25 +95,30 @@ The mapping spec covers:
 
 The implementation order for the operator-facing engine is intentionally staged so we do not freeze the wrong contract too early.
 
+Completed:
+
 1. Fix wrapper/bootstrap behavior and make the local wrapper dependable.
 2. Freeze one machine-readable JSON schema plus stable exit codes.
 3. Add public `run` so operators and future skill wrappers can use one command immediately.
-4. Replace fixed database IDs with real dynamic target resolution.
-5. Make `doctor` public only after step 4 is complete.
-6. Remove `report-aware`, fixed-ID remnants, and legacy development-only CLI surfaces.
-7. Add the actual Codex and Claude skill assets plus the operator runbook.
+4. Replace fixed database ID assumptions in the runtime path with dynamic target resolution.
+5. Expose public read-only `doctor`.
+6. Remove `report-aware` runtime surfaces from the operator contract.
+
+Remaining:
+
+1. Add the actual Codex and Claude skill assets.
+2. Add the operator runbook.
+3. Run the final proof in `codexvalidation`.
 
 Why this order matters:
 
-- The current cosmetic flow still assumes frozen record IDs in the mapping spec.
-- A public `doctor` before dynamic resolution exists would look correct in the interface while still behaving like a legacy fixed-environment check underneath.
-- `run` can be made useful earlier because it is just orchestrating preflight, apply, and validate around the existing cosmetic engine.
+- The early rollout needed `run` before the resolver refactor was complete.
+- `doctor` only became safe to expose after dynamic cosmetic resolution was real.
+- Removing the `report-aware` runtime path keeps the operator contract aligned with the cosmetic-only scope.
 
 Temporary rule during the rollout:
 
-- `plan`, `--mode`, and `--dry-run` are legacy development aids only.
-- They are not part of the operator contract.
-- Skill wrappers must target only the staged public contract.
+- Skill wrappers must target only the public cosmetic contract.
 
 ## Target Engine Contract
 
@@ -124,13 +129,12 @@ The shared Python engine should expose:
 - `validate`
 - `run`
 
-Staged public contract before the resolver refactor is complete:
+Current public contract:
 
+- `doctor`
 - `apply`
 - `validate`
 - `run`
-
-`doctor` stays internal until dynamic resolution is real.
 
 Normal operator flow for skills:
 
@@ -153,6 +157,7 @@ The engine should support machine-readable JSON output so both skill wrappers ca
 - Safety assertions: no posted moves deleted, no destructive operations, rerun stays stable.
 - UI spot checks: accounting dashboard, chart of accounts, taxes, customer invoice, and vendor bill.
 - Prompt pack test: run the fallback flow on a fresh environment and compare the visible result against the patcher outcome.
+- Live contract proof: run the cleaned cosmetic engine in `codexvalidation` before freezing the skill assets.
 
 ## Deliverables
 

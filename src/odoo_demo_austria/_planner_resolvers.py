@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from ._planner_types import RepartitionLineRef
 from .json2_client import Json2Client, Json2ClientError
 from .models import (
     AccountSpec,
@@ -54,32 +53,6 @@ def resolve_cosmetic_targets(client: Json2Client, spec: ProjectSpec) -> Resolved
         fiscal_positions=fiscal_positions,
         accounts=accounts,
     )
-
-
-def resolve_repartition_lines(
-    client: Json2Client,
-    tax_ids: list[int],
-) -> dict[int, tuple[RepartitionLineRef, ...]]:
-    records = client.search_read(
-        "account.tax.repartition.line",
-        domain=[["tax_id", "in", tax_ids]],
-        fields=["id", "tax_id", "document_type", "repartition_type"],
-        order="tax_id,id",
-    )
-    grouped: dict[int, list[RepartitionLineRef]] = {tax_id: [] for tax_id in tax_ids}
-    for record in records:
-        tax_id = _many2one_id(record.get("tax_id"), "account.tax.repartition.line.tax_id")
-        grouped.setdefault(tax_id, []).append(
-            RepartitionLineRef(
-                record_id=int(record["id"]),
-                tax_id=tax_id,
-                document_type=str(record["document_type"]),
-                repartition_type=str(record["repartition_type"]),
-            )
-        )
-    return {tax_id: tuple(lines) for tax_id, lines in grouped.items()}
-
-
 def _resolve_company(client: Json2Client, spec: ProjectSpec) -> dict[str, Any]:
     records = client.search_read(
         "res.company",

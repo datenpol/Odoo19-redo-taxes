@@ -17,16 +17,14 @@ from .planner import (
 from .validator import validate_cosmetic_state
 
 MODE = "cosmetic"
-
-
 def execute_command(command: str, client: Json2Client, spec: ProjectSpec) -> CommandReport:
+    if command == "doctor":
+        return _execute_doctor(client, spec)
     if command == "apply":
         return _execute_apply(client, spec)
     if command == "validate":
         return _execute_validate(client, spec)
     return _execute_run(client, spec)
-
-
 def unexpected_report(*, command: str, base_url: str, summary: str) -> CommandReport:
     return CommandReport(
         command=command,
@@ -39,20 +37,41 @@ def unexpected_report(*, command: str, base_url: str, summary: str) -> CommandRe
         apply=skipped_stage("Not run."),
         validation=skipped_stage("Not run."),
     )
-
-
 def resolved_base_url(base_url: str | None) -> str:
     return base_url or os.environ.get("ODOO_BASE_URL", "https://dmdemousa.odoo19.at")
-
-
 def _build_operations(
     client: Json2Client,
     spec: ProjectSpec,
 ) -> list[PlanOperation]:
     resolved = resolve_cosmetic_targets(client, spec)
     return build_cosmetic_plan(spec, resolved)
+def _run_preflight(
+    command: str,
+    client: Json2Client,
+    spec: ProjectSpec,
+    *,
+    failure_summary: str,
+) -> tuple[list[PlanOperation], StageReport] | CommandReport:
+    try:
+        operations = _build_operations(client, spec)
+    except Exception as exc:
+        return _phase_failure_report(
+            command=command,
+            base_url=client.base_url,
+            summary=failure_summary,
+            phase="preflight",
+            exc=exc,
+            default_exit_code=ExitCode.PREFLIGHT_FAILURE,
+            preflight=skipped_stage(),
+            apply=skipped_stage(),
+            validation=skipped_stage(),
+        )
 
-
+    return operations, StageReport(
+        status="success",
+        summary=f"Planned {len(operations)} cosmetic operations.",
+        operation_count=len(operations),
+    )
 def _apply_operations(client: Json2Client, operations: list[PlanOperation]) -> int:
     for operation in operations:
         ensure_operation_safe(operation)
@@ -74,8 +93,6 @@ def _apply_operations(client: Json2Client, operations: list[PlanOperation]) -> i
                 context=operation.update_context,
             )
     return len(operations)
-
-
 def _apply_ensure_create(client: Json2Client, operation: EnsureCreateOperation) -> int:
     matches = client.search_read(
         operation.model,
@@ -108,35 +125,47 @@ def _apply_ensure_create(client: Json2Client, operation: EnsureCreateOperation) 
         if update_vals:
             client.write(operation.model, [record_id], update_vals)
         return record_id
-
     created_id = client.create(operation.model, operation.create_vals)
     return int(created_id)
+def _execute_doctor(client: Json2Client, spec: ProjectSpec) -> CommandReport:
+    preflight_result = _run_preflight(
+        "doctor",
+        client,
+        spec,
+        failure_summary="Doctor failed during preflight.",
+    )
+    if isinstance(preflight_result, CommandReport):
+        return preflight_result
 
-
+    _operations, preflight = preflight_result
+    return CommandReport(
+        command="doctor",
+        mode=MODE,
+        base_url=client.base_url,
+        status="success",
+        summary="Doctor passed.",
+        exit_code=ExitCode.SUCCESS,
+        preflight=StageReport(
+            status=preflight.status,
+            summary="Resolved cosmetic targets successfully.",
+            messages=preflight.messages,
+            operation_count=preflight.operation_count,
+        ),
+        apply=skipped_stage("Not run by the doctor command."),
+        validation=skipped_stage("Not run by the doctor command."),
+    )
 def _execute_apply(client: Json2Client, spec: ProjectSpec) -> CommandReport:
-    preflight = skipped_stage()
     apply = skipped_stage()
     validation = skipped_stage("Not run by the apply command.")
-
-    try:
-        operations = _build_operations(client, spec)
-        preflight = StageReport(
-            status="success",
-            summary=f"Planned {len(operations)} cosmetic operations.",
-            operation_count=len(operations),
-        )
-    except Exception as exc:
-        return _phase_failure_report(
-            command="apply",
-            base_url=client.base_url,
-            summary="Apply aborted during preflight.",
-            phase="preflight",
-            exc=exc,
-            default_exit_code=ExitCode.PREFLIGHT_FAILURE,
-            preflight=preflight,
-            apply=apply,
-            validation=validation,
-        )
+    preflight_result = _run_preflight(
+        "apply",
+        client,
+        spec,
+        failure_summary="Apply aborted during preflight.",
+    )
+    if isinstance(preflight_result, CommandReport):
+        return preflight_result
+    operations, preflight = preflight_result
 
     try:
         applied_count = _apply_operations(client, operations)
@@ -169,8 +198,6 @@ def _execute_apply(client: Json2Client, spec: ProjectSpec) -> CommandReport:
         apply=apply,
         validation=validation,
     )
-
-
 def _execute_validate(client: Json2Client, spec: ProjectSpec) -> CommandReport:
     preflight = skipped_stage("Not run by the validate command.")
     apply = skipped_stage("Not run by the validate command.")
@@ -214,32 +241,18 @@ def _execute_validate(client: Json2Client, spec: ProjectSpec) -> CommandReport:
         apply=apply,
         validation=validation,
     )
-
-
 def _execute_run(client: Json2Client, spec: ProjectSpec) -> CommandReport:
-    preflight = skipped_stage()
     apply = skipped_stage()
     validation = skipped_stage()
-
-    try:
-        operations = _build_operations(client, spec)
-        preflight = StageReport(
-            status="success",
-            summary=f"Planned {len(operations)} cosmetic operations.",
-            operation_count=len(operations),
-        )
-    except Exception as exc:
-        return _phase_failure_report(
-            command="run",
-            base_url=client.base_url,
-            summary="Run aborted during preflight.",
-            phase="preflight",
-            exc=exc,
-            default_exit_code=ExitCode.PREFLIGHT_FAILURE,
-            preflight=preflight,
-            apply=apply,
-            validation=validation,
-        )
+    preflight_result = _run_preflight(
+        "run",
+        client,
+        spec,
+        failure_summary="Run aborted during preflight.",
+    )
+    if isinstance(preflight_result, CommandReport):
+        return preflight_result
+    operations, preflight = preflight_result
 
     try:
         applied_count = _apply_operations(client, operations)
@@ -302,8 +315,6 @@ def _execute_run(client: Json2Client, spec: ProjectSpec) -> CommandReport:
         apply=apply,
         validation=validation,
     )
-
-
 def _validation_stage(issues: Sequence[object]) -> StageReport:
     if issues:
         messages = tuple(_format_issue(issue) for issue in issues)
@@ -318,8 +329,6 @@ def _validation_stage(issues: Sequence[object]) -> StageReport:
         summary="Validation passed.",
         issue_count=0,
     )
-
-
 def _phase_failure_report(
     *,
     command: str,
@@ -355,20 +364,14 @@ def _phase_failure_report(
         apply=apply,
         validation=validation,
     )
-
-
 def _classify_failure(exc: Exception, default_exit_code: ExitCode) -> int:
     if isinstance(exc, Json2ClientError) and _looks_like_api_failure(str(exc)):
         return ExitCode.API_FAILURE
     if isinstance(exc, (Json2ClientError, ValueError)):
         return int(default_exit_code)
     return ExitCode.INTERNAL_ERROR
-
-
 def _looks_like_api_failure(message: str) -> bool:
     return message.startswith(("HTTP ", "Transport error", "Invalid JSON response"))
-
-
 def _format_issue(issue: object) -> str:
     scope = getattr(issue, "scope", "validation")
     message = getattr(issue, "message", str(issue))

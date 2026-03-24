@@ -81,7 +81,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    for command in ("apply", "validate", "run"):
+    for command in ("doctor", "apply", "validate", "run"):
         subparsers.add_parser(command, parents=[common])
 
     return parser

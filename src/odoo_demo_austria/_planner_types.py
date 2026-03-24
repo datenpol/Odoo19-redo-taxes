@@ -100,14 +100,6 @@ class EnsureCreateOperation:
 PlanOperation = WriteOperation | EnsureCreateOperation
 
 
-@dataclass(frozen=True)
-class RepartitionLineRef:
-    record_id: int
-    tax_id: int
-    document_type: str
-    repartition_type: str
-
-
 def ensure_operation_safe(operation: PlanOperation) -> None:
     if isinstance(operation, WriteOperation):
         _ensure_allowlisted_fields(

@@ -45,7 +45,6 @@ class LocalizationSpec:
 @dataclass(frozen=True)
 class CompanyIdentity:
     target_company_name: str
-    target_display_name: str
     target_partner_name: str
     street: str
     street2: str
@@ -83,7 +82,6 @@ class CurrencyRecordSpec:
     target_unit_label: TranslatedText
     target_subunit_label: TranslatedText
     target_position: str
-    keep_rate_as_is: bool = True
 
 
 @dataclass(frozen=True)
@@ -99,17 +97,10 @@ class TaxGroupCosmeticSpec:
 
 
 @dataclass(frozen=True)
-class TaxGroupReportAwareSpec:
-    target_country_id: int
-    reference_group_id: int
-
-
-@dataclass(frozen=True)
 class TaxGroupSpec:
     record_id: int
     source_name: str
     cosmetic: TaxGroupCosmeticSpec
-    report_aware: TaxGroupReportAwareSpec
 
 
 @dataclass(frozen=True)
@@ -122,28 +113,11 @@ class TaxCosmeticSpec:
 
 
 @dataclass(frozen=True)
-class TaxReportAwareSpec:
-    target_country_id: int
-    reference_tax_id: int
-    reference_tax_name: str
-    reference_invoice_tags: tuple[int, ...]
-    reference_tax_tags: tuple[int, ...]
-    target_tax_account_id: int | None
-    target_tax_account_name: str | None
-    candidate_tax_account_id: int | None
-    candidate_tax_account_name: str | None
-    note: str | None
-
-
-@dataclass(frozen=True)
 class TaxSpec:
     record_id: int
     source_name: str
     source_type_tax_use: str
-    default_company_sale_tax: bool
-    default_company_purchase_tax: bool
     cosmetic: TaxCosmeticSpec
-    report_aware: TaxReportAwareSpec
 
 
 @dataclass(frozen=True)
@@ -151,7 +125,6 @@ class JournalSpec:
     record_id: int
     source_name: str
     target_name: TranslatedText
-    reference_journal_id: int | None
 
 
 @dataclass(frozen=True)
@@ -176,7 +149,6 @@ class AccountSpec:
     source_name: str
     target_name: TranslatedText
     posted_lines: int
-    reference_account_id: int | None
 
 
 @dataclass(frozen=True)
@@ -190,10 +162,6 @@ class ChartSpec:
 
 @dataclass(frozen=True)
 class ValidationSpec:
-    expected_company_country_id: int
-    expected_company_currency_id_after_cosmetic: int
-    expected_default_sale_tax_id: int
-    expected_default_purchase_tax_id: int
     api_assertions: tuple[str, ...]
     ui_spot_checks: tuple[str, ...]
 

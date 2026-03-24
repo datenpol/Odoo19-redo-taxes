@@ -12,7 +12,6 @@ reference_environment:
 design_principles:
   default_mode: cosmetic
   preserve_logic_by_default: true
-  report_aware_optional: true
   idempotent_required: true
   prompt_pack_reliability_over_prompt_count: true
   exact_l10n_at_reference_first: true
@@ -31,7 +30,6 @@ localization:
 identity:
   company:
     target_company_name: Datenpol Wohnatelier GmbH
-    target_display_name: Datenpol Wohnatelier GmbH
     target_partner_name: Datenpol Wohnatelier GmbH
     street: Mariahilfer Strasse 182
     street2: ''
@@ -68,7 +66,6 @@ currency:
       translations:
         de_DE: Cent
     target_position: after
-    keep_rate_as_is: true
   displaced_reference_currency:
     currency_id: 126
     source_code: EUR
@@ -95,9 +92,6 @@ tax_groups:
       base: 20%
       translations:
         de_DE: 20%
-  report_aware:
-    target_country_id: 12
-    reference_group_id: 8
 - id: 2
   source_name: Tax 0%
   cosmetic:
@@ -105,14 +99,10 @@ tax_groups:
       base: 0%
       translations:
         de_DE: 0%
-  report_aware:
-    target_country_id: 12
-    reference_group_id: 3
 taxes:
 - id: 1
   source_name: 15%
   source_type_tax_use: sale
-  default_company_sale_tax: true
   cosmetic:
     target_name:
       base: 20% Ust
@@ -128,21 +118,9 @@ taxes:
       base_html: <div>UST_022 Normal tax rate 20%</div>
       translations:
         de_DE: UST_022 Normalsteuersatz 20%
-  report_aware:
-    target_country_id: 12
-    reference_tax_id: 19
-    reference_tax_name: 20% Ust
-    reference_invoice_tags:
-    - 1043
-    - 1054
-    reference_tax_tags:
-    - 1055
-    target_tax_account_id: 21
-    target_tax_account_name: VAT 20%
 - id: 2
   source_name: 15%
   source_type_tax_use: purchase
-  default_company_purchase_tax: true
   cosmetic:
     target_name:
       base: 20% Vst
@@ -158,15 +136,6 @@ taxes:
       base_html: <div>VST_060 Normal tax rate 20%</div>
       translations:
         de_DE: VST_060 Normalsteuersatz 20%
-  report_aware:
-    target_country_id: 12
-    reference_tax_id: 47
-    reference_tax_name: 20% Vst
-    reference_invoice_tags: []
-    reference_tax_tags:
-    - 1084
-    target_tax_account_id: 9
-    target_tax_account_name: Input tax 20%
 - id: 3
   source_name: 0% Exports
   source_type_tax_use: sale
@@ -185,17 +154,6 @@ taxes:
       base_html: <div>UST_015 Export 0% (§ 6 Abs. 1 Z 2 bis 6)</div>
       translations:
         de_DE: UST_015 Export 0% (§ 6 Abs. 1 Z 2 bis 6)
-  report_aware:
-    target_country_id: 12
-    reference_tax_id: 13
-    reference_tax_name: 0% Ust EX art6
-    reference_invoice_tags:
-    - 1043
-    - 1048
-    reference_tax_tags: []
-    candidate_tax_account_id: 186
-    candidate_tax_account_name: VAT, other
-    note: Keep tax line account empty unless VAT report testing shows a visible gap.
 - id: 4
   source_name: 0% Imports
   source_type_tax_use: purchase
@@ -214,16 +172,6 @@ taxes:
       base_html: <div>VST_071 IGE 0%</div>
       translations:
         de_DE: VST_071 IGE 0%
-  report_aware:
-    target_country_id: 12
-    reference_tax_id: 60
-    reference_tax_name: 0% Vst
-    reference_invoice_tags: []
-    reference_tax_tags:
-    - 1087
-    candidate_tax_account_id: 151
-    candidate_tax_account_name: Other tax 13%
-    note: Validate against the Austrian VAT report before assigning the tax line account in report-aware mode.
 journals:
 - id: 1
   source_name: Sales
@@ -851,10 +799,6 @@ chart:
     posted_lines: 0
     reference_account_id: 283
 validation:
-  expected_company_country_id: 12
-  expected_company_currency_id_after_cosmetic: 1
-  expected_default_sale_tax_id: 1
-  expected_default_purchase_tax_id: 2
   api_assertions:
   - company 1 name, partner data, and bank account match the identity section
   - currency 1 is renamed to EUR-style labels in base and de_DE reads
@@ -870,7 +814,6 @@ validation:
   - taxes list in German language
   - customer invoice print preview in German language
   - vendor bill print preview in German language
-  - Austrian tax report visual plausibility in report-aware mode
 prompt_pack:
   generation_source: this_mapping_spec
   chunk_order:
@@ -884,5 +827,4 @@ prompt_pack:
   - verification
 open_items:
 - Trusted partner bank accounts cannot have their account number changed in place. Cosmetic mode currently leaves immutable trusted bank fields untouched.
-- Decide whether cosmetic mode should also rename tax country fields or reserve that only for report-aware mode.
-- Validate whether zero-tax report-aware account assignments should stay empty or borrow Austrian reference accounts.
+- Run a live smoke test in codexvalidation once the cleaned operator contract is frozen.

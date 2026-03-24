@@ -2,8 +2,7 @@
 
 ## Frozen scope
 
-- Primary path: `cosmetic` mode, full Austrian look, no clean accounting migration.
-- Optional path: `report-aware` mode, still pragmatic, but allowed to touch tax and report facing metadata so the VAT report looks plausibly Austrian too.
+- Primary and only path: `cosmetic` mode, full Austrian look, no clean accounting migration.
 - Sales fallback: chunked prompt pack with full cosmetic parity to the patcher, optimized for reliability rather than minimum prompt count.
 - Build target: `codexplayground.odoo19.at`
 - Final proof target: `codexvalidation.odoo19.at`
@@ -19,8 +18,17 @@
 Keep one single source of truth for all cosmetic mappings. That mapping spec drives:
 
 - API patcher behavior
+- shared Python core engine behavior
+- Codex skill wrapper behavior
+- Claude skill wrapper behavior
 - human prompt pack for Odoo AI
 - documentation and validation checklist
+
+The operator-facing workflow must stay as close to one command as possible. The intended skill UX is:
+
+- `$datenpol-euro-demo URL API_KEY`
+
+Skills are thin wrappers. Business logic stays in the shared Python core so Codex and Claude do not drift.
 
 ## Engineering guardrails
 
@@ -53,10 +61,10 @@ The mapping spec covers:
 1. Baseline the untouched `San Francisco` company in `codexplayground` and export the exact records that drive visible presentation.
 2. Create the mapping spec as the single source of truth for company identity, currency cosmetics, journals, tax groups, taxes, accounts, bank and contact details, and validation expectations. The spec must be translation-aware so the Austrian-German UI is deterministic.
 3. Implement the API patcher against Odoo 19 `JSON-2` with:
-   - `cosmetic`
-   - `report-aware`
-   - `dry-run`
-   - `validate-only`
+   - cosmetic-only scope
+   - dynamic target resolution instead of fixed baseline IDs
+   - skill-friendly CLI commands
+   - machine-readable output for wrappers
    - idempotent behavior
 4. Cosmetic mode only touches presentation-facing labels and metadata:
    - company master data
@@ -67,10 +75,11 @@ The mapping spec covers:
    - tax names, tax group labels, and descriptions
    - chart of accounts names and Austrian 4-digit codes so `San Francisco` looks like Austrian seed data
    - bank and account display details
-5. Report-aware mode additionally aligns the tax and report facing layer where safely possible without rewriting posted entries:
-   - Austrian-looking tax groups everywhere
-   - Austrian-looking tax accounts everywhere
-   - VAT report facing cosmetics where safe
+5. Expose the cosmetic engine through thin skill wrappers:
+   - Codex skill wrapper
+   - Claude skill wrapper
+   - no GUI
+   - Python install acceptable for operator machines
 6. Generate the prompt pack from the same mapping spec, in chunks:
    - company and currency
    - tax groups
@@ -82,11 +91,35 @@ The mapping spec covers:
    - verification prompt
 7. Validate in `codexvalidation` from a clean start and compare results against the mapping spec instead of eyeballing.
 
+## Target Engine Contract
+
+The shared Python engine should expose:
+
+- `doctor`
+- `apply`
+- `validate`
+- `run`
+
+Normal operator flow for skills:
+
+- `run` only
+- cosmetic only
+- arguments: `URL API_KEY`
+
+Skill wrappers should:
+
+- parse `URL` and `API_KEY`
+- pass the API key through the environment
+- call the Python engine
+- show concise success or blocker summaries
+
+The engine should support machine-readable JSON output so both skill wrappers can consume the same result contract.
+
 ## Validation method
 
 - API assertions for company, currency, journals, taxes, tax groups, and account labels in base and `de_DE` reads.
 - Safety assertions: no posted moves deleted, no destructive operations, rerun stays stable.
-- UI spot checks: accounting dashboard, chart of accounts, taxes, customer invoice, vendor bill, and tax report.
+- UI spot checks: accounting dashboard, chart of accounts, taxes, customer invoice, and vendor bill.
 - Prompt pack test: run the fallback flow on a fresh environment and compare the visible result against the patcher outcome.
 
 ## Deliverables

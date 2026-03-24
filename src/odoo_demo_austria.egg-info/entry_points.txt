@@ -1,2 +1,0 @@
-[console_scripts]
-odoo-demo-austria = odoo_demo_austria.cli:main

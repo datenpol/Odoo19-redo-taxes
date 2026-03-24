@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from ._validator_support import ValidationIssue, expect_equal, many2one_id, single
 from .json2_client import Json2Client
-from .models import ProjectSpec
+from .models import ProjectSpec, ResolvedProject
 
 
 def validate_company_identity(
     client: Json2Client,
     spec: ProjectSpec,
+    resolved: ResolvedProject,
     issues: list[ValidationIssue],
 ) -> None:
-    company_id = spec.source_environment.company_id
-    company = single(client.read("res.company", [company_id], ["name", "currency_id"]))
+    company = single(client.read("res.company", [resolved.company_id], ["name", "currency_id"]))
     expect_equal(
         issues,
         "res.company",
@@ -24,20 +24,20 @@ def validate_company_identity(
         "res.company",
         "currency_id",
         many2one_id(company.get("currency_id")),
-        spec.validation.expected_company_currency_id_after_cosmetic,
+        resolved.active_company_currency.record_id,
     )
 
 
 def validate_partner_identity(
     client: Json2Client,
     spec: ProjectSpec,
-    partner_id: int,
+    resolved: ResolvedProject,
     issues: list[ValidationIssue],
 ) -> None:
     partner = single(
         client.read(
             "res.partner",
-            [partner_id],
+            [resolved.company_partner_id],
             [
                 "name",
                 "street",
@@ -82,17 +82,17 @@ def validate_partner_identity(
 def validate_bank_identity(
     client: Json2Client,
     spec: ProjectSpec,
-    bank_fields_locked: bool,
+    resolved: ResolvedProject,
     issues: list[ValidationIssue],
 ) -> None:
     bank = single(
         client.read(
             "res.partner.bank",
-            [spec.identity.bank.partner_bank_id],
+            [resolved.bank.record_id],
             ["acc_number", "bank_id", "allow_out_payment", "lock_trust_fields"],
         )
     )
-    if not bank_fields_locked:
+    if not resolved.bank.bank_fields_locked:
         expect_equal(
             issues,
             "res.partner.bank",

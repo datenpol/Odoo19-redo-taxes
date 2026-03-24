@@ -14,6 +14,7 @@ class SpecLoaderTests(unittest.TestCase):
         spec = load_spec(SPEC_PATH)
         self.assertEqual(spec.localization.primary_display_language, "de_DE")
         self.assertTrue(spec.localization.reference_snapshot_file.exists())
+        self.assertEqual(spec.identity.bank.source_acc_number, "BANK134567890")
         self.assertEqual(len(spec.taxes), 4)
         self.assertEqual(len(spec.journals), 13)
         self.assertEqual(len(spec.fiscal_positions), 4)

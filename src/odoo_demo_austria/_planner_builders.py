@@ -9,14 +9,15 @@ from ._planner_types import (
     ensure_operation_safe,
 )
 from .models import (
-    AccountSpec,
-    CurrencyRecordSpec,
-    FiscalPositionSpec,
     HtmlTranslatedText,
-    JournalSpec,
     ProjectSpec,
-    TaxGroupSpec,
-    TaxSpec,
+    ResolvedAccount,
+    ResolvedCurrencyRecord,
+    ResolvedFiscalPosition,
+    ResolvedJournal,
+    ResolvedProject,
+    ResolvedTax,
+    ResolvedTaxGroup,
     TranslatedText,
 )
 
@@ -25,56 +26,54 @@ TranslatedField = TranslatedText | HtmlTranslatedText
 
 def build_cosmetic_plan(
     spec: ProjectSpec,
-    *,
-    company_partner_id: int,
-    bank_fields_locked: bool = False,
+    resolved: ResolvedProject,
 ) -> list[PlanOperation]:
     lang = spec.localization.primary_display_language
     operations: list[PlanOperation] = [
-        _build_company_operation(spec),
-        _build_partner_operation(spec, company_partner_id),
-        _build_bank_operation(spec, bank_fields_locked),
+        _build_company_operation(spec, resolved),
+        _build_partner_operation(spec, resolved),
+        _build_bank_operation(spec, resolved),
     ]
     operations.extend(
         _build_currency_operations(
-            spec.currency.displaced_reference_currency,
+            resolved.displaced_reference_currency,
             lang=lang,
             reason_prefix="Move the seeded EUR currency out of the way",
         )
     )
     operations.extend(
         _build_currency_operations(
-            spec.currency.active_company_currency,
+            resolved.active_company_currency,
             lang=lang,
             reason_prefix=("Rename the active USD company currency to Austrian-looking EUR labels"),
         )
     )
-    operations.extend(_build_tax_group_operations(spec.tax_groups, lang=lang))
-    operations.extend(_build_tax_operations(spec.taxes, lang=lang))
-    operations.extend(_build_journal_operations(spec.journals, lang=lang))
-    operations.extend(_build_fiscal_position_operations(spec, lang=lang))
-    operations.extend(_build_account_operations(spec.chart.explicit_accounts, lang=lang))
+    operations.extend(_build_tax_group_operations(resolved.tax_groups, lang=lang))
+    operations.extend(_build_tax_operations(resolved.taxes, lang=lang))
+    operations.extend(_build_journal_operations(resolved.journals, lang=lang))
+    operations.extend(_build_fiscal_position_operations(resolved, lang=lang))
+    operations.extend(_build_account_operations(resolved.accounts, lang=lang))
     _ensure_operations_safe(operations)
     return operations
 
 
-def _build_company_operation(spec: ProjectSpec) -> WriteOperation:
+def _build_company_operation(spec: ProjectSpec, resolved: ResolvedProject) -> WriteOperation:
     return WriteOperation(
         model="res.company",
-        ids=(spec.source_environment.company_id,),
+        ids=(resolved.company_id,),
         vals={
             "name": spec.identity.company.target_company_name,
-            "currency_id": spec.validation.expected_company_currency_id_after_cosmetic,
+            "currency_id": resolved.active_company_currency.record_id,
         },
         reason="Update company display name and active currency pointer",
     )
 
 
-def _build_partner_operation(spec: ProjectSpec, company_partner_id: int) -> WriteOperation:
+def _build_partner_operation(spec: ProjectSpec, resolved: ResolvedProject) -> WriteOperation:
     company = spec.identity.company
     return WriteOperation(
         model="res.partner",
-        ids=(company_partner_id,),
+        ids=(resolved.company_partner_id,),
         vals={
             "name": company.target_partner_name,
             "street": company.street,
@@ -92,39 +91,39 @@ def _build_partner_operation(spec: ProjectSpec, company_partner_id: int) -> Writ
     )
 
 
-def _build_bank_operation(spec: ProjectSpec, bank_fields_locked: bool) -> WriteOperation:
+def _build_bank_operation(spec: ProjectSpec, resolved: ResolvedProject) -> WriteOperation:
     bank_vals: dict[str, Any] = {
         "allow_out_payment": spec.identity.bank.allow_out_payment,
     }
-    if not bank_fields_locked:
+    if not resolved.bank.bank_fields_locked:
         bank_vals["acc_number"] = spec.identity.bank.acc_number
         bank_vals["bank_id"] = spec.identity.bank.bank_id or False
     return WriteOperation(
         model="res.partner.bank",
-        ids=(spec.identity.bank.partner_bank_id,),
+        ids=(resolved.bank.record_id,),
         vals=bank_vals,
         reason="Update display bank details for the company partner",
     )
 
 
 def _build_currency_operations(
-    item: CurrencyRecordSpec,
+    item: ResolvedCurrencyRecord,
     *,
     lang: str,
     reason_prefix: str,
 ) -> list[WriteOperation]:
     return _build_translated_write_operations(
         model="res.currency",
-        record_id=item.currency_id,
+        record_id=item.record_id,
         base_fields={
-            "name": item.target_code,
-            "symbol": item.target_symbol,
-            "position": item.target_position,
+            "name": item.spec.target_code,
+            "symbol": item.spec.target_symbol,
+            "position": item.spec.target_position,
         },
         translated_fields={
-            "full_name": item.target_full_name,
-            "currency_unit_label": item.target_unit_label,
-            "currency_subunit_label": item.target_subunit_label,
+            "full_name": item.spec.target_full_name,
+            "currency_unit_label": item.spec.target_unit_label,
+            "currency_subunit_label": item.spec.target_subunit_label,
         },
         lang=lang,
         reason=reason_prefix,
@@ -132,7 +131,7 @@ def _build_currency_operations(
 
 
 def _build_tax_group_operations(
-    tax_groups: tuple[TaxGroupSpec, ...],
+    tax_groups: tuple[ResolvedTaxGroup, ...],
     *,
     lang: str,
 ) -> list[WriteOperation]:
@@ -143,7 +142,7 @@ def _build_tax_group_operations(
                 model="account.tax.group",
                 record_id=tax_group.record_id,
                 base_fields={},
-                translated_fields={"name": tax_group.cosmetic.target_name},
+                translated_fields={"name": tax_group.spec.cosmetic.target_name},
                 lang=lang,
                 reason=f"Rename tax group {tax_group.record_id} cosmetically",
             )
@@ -152,7 +151,7 @@ def _build_tax_group_operations(
 
 
 def _build_tax_operations(
-    taxes: tuple[TaxSpec, ...],
+    taxes: tuple[ResolvedTax, ...],
     *,
     lang: str,
 ) -> list[WriteOperation]:
@@ -163,13 +162,13 @@ def _build_tax_operations(
                 model="account.tax",
                 record_id=tax.record_id,
                 base_fields={
-                    "amount": tax.cosmetic.target_amount,
-                    "tax_group_id": tax.cosmetic.target_group_id,
+                    "amount": tax.spec.cosmetic.target_amount,
+                    "tax_group_id": tax.tax_group_id,
                 },
                 translated_fields={
-                    "name": tax.cosmetic.target_name,
-                    "description": tax.cosmetic.target_description,
-                    "invoice_label": tax.cosmetic.target_invoice_label,
+                    "name": tax.spec.cosmetic.target_name,
+                    "description": tax.spec.cosmetic.target_description,
+                    "invoice_label": tax.spec.cosmetic.target_invoice_label,
                 },
                 lang=lang,
                 reason=f"Rename tax {tax.record_id} cosmetically",
@@ -179,7 +178,7 @@ def _build_tax_operations(
 
 
 def _build_journal_operations(
-    journals: tuple[JournalSpec, ...],
+    journals: tuple[ResolvedJournal, ...],
     *,
     lang: str,
 ) -> list[WriteOperation]:
@@ -190,7 +189,7 @@ def _build_journal_operations(
                 model="account.journal",
                 record_id=journal.record_id,
                 base_fields={},
-                translated_fields={"name": journal.target_name},
+                translated_fields={"name": journal.spec.target_name},
                 lang=lang,
                 reason=f"Rename journal {journal.record_id} cosmetically",
             )
@@ -199,7 +198,7 @@ def _build_journal_operations(
 
 
 def _build_account_operations(
-    accounts: tuple[AccountSpec, ...],
+    accounts: tuple[ResolvedAccount, ...],
     *,
     lang: str,
 ) -> list[WriteOperation]:
@@ -209,10 +208,13 @@ def _build_account_operations(
             _build_translated_write_operations(
                 model="account.account",
                 record_id=account.record_id,
-                base_fields={"code": account.code},
-                translated_fields={"name": account.target_name},
+                base_fields={"code": account.spec.code},
+                translated_fields={"name": account.spec.target_name},
                 lang=lang,
-                reason=f"Rename account {account.record_id} ({account.code}) cosmetically",
+                reason=(
+                    f"Rename account {account.record_id} "
+                    f"({account.spec.code}) cosmetically"
+                ),
             )
         )
     return operations
@@ -269,16 +271,16 @@ def _translated_values(
 
 
 def _build_fiscal_position_operations(
-    spec: ProjectSpec,
+    resolved: ResolvedProject,
     *,
     lang: str,
 ) -> list[PlanOperation]:
     operations: list[PlanOperation] = []
-    for fiscal_position in spec.fiscal_positions:
+    for fiscal_position in resolved.fiscal_positions:
         operations.extend(
             _build_single_fiscal_position_operations(
                 fiscal_position,
-                company_id=spec.source_environment.company_id,
+                company_id=resolved.company_id,
                 lang=lang,
             )
         )
@@ -286,21 +288,22 @@ def _build_fiscal_position_operations(
 
 
 def _build_single_fiscal_position_operations(
-    fiscal_position: FiscalPositionSpec,
+    fiscal_position: ResolvedFiscalPosition,
     *,
     company_id: int,
     lang: str,
 ) -> list[PlanOperation]:
+    spec = fiscal_position.spec
     base_fields = {
-        "sequence": fiscal_position.sequence,
-        "auto_apply": fiscal_position.auto_apply,
-        "country_id": fiscal_position.country_id or False,
-        "country_group_id": fiscal_position.country_group_id or False,
-        "vat_required": fiscal_position.vat_required,
-        "foreign_vat": fiscal_position.foreign_vat or False,
-        "tax_ids": [[6, 0, list(fiscal_position.target_tax_ids)]],
+        "sequence": spec.sequence,
+        "auto_apply": spec.auto_apply,
+        "country_id": spec.country_id or False,
+        "country_group_id": spec.country_group_id or False,
+        "vat_required": spec.vat_required,
+        "foreign_vat": spec.foreign_vat or False,
+        "tax_ids": [[6, 0, list(spec.target_tax_ids)]],
     }
-    translated_fields = {"name": fiscal_position.target_name}
+    translated_fields = {"name": spec.target_name}
 
     if fiscal_position.record_id is not None:
         operations: list[PlanOperation] = []
@@ -316,8 +319,8 @@ def _build_single_fiscal_position_operations(
         )
         return operations
 
-    if not fiscal_position.create_if_missing:
-        name = fiscal_position.target_name.base
+    if not spec.create_if_missing:
+        name = spec.target_name.base
         raise ValueError(f"Fiscal position {name!r} has no id and is not marked create_if_missing")
 
     return [
@@ -325,13 +328,13 @@ def _build_single_fiscal_position_operations(
             model="account.fiscal.position",
             lookup_domain=[
                 ["company_id", "=", company_id],
-                ["name", "=", fiscal_position.target_name.base],
+                ["name", "=", spec.target_name.base],
             ],
             create_fields={"company_id": company_id, **base_fields},
             translated_fields=translated_fields,
             lang=lang,
             reason=(
-                f"Ensure fiscal position {fiscal_position.target_name.base} exists cosmetically"
+                f"Ensure fiscal position {spec.target_name.base} exists cosmetically"
             ),
         )
     ]

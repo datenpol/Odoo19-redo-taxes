@@ -3,6 +3,17 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
+from odoo_demo_austria.models import (
+    ProjectSpec,
+    ResolvedAccount,
+    ResolvedBank,
+    ResolvedCurrencyRecord,
+    ResolvedFiscalPosition,
+    ResolvedJournal,
+    ResolvedProject,
+    ResolvedTax,
+    ResolvedTaxGroup,
+)
 from odoo_demo_austria.planner import (
     EnsureCreateOperation,
     RepartitionLineRef,
@@ -18,6 +29,45 @@ SPEC_PATH = ROOT / "data" / "austria-cosmetic-mapping-spec.draft.yaml"
 
 
 class PlannerTests(unittest.TestCase):
+    def _resolved_fixture(self, project: ProjectSpec) -> ResolvedProject:
+        return ResolvedProject(
+            company_id=project.source_environment.company_id,
+            company_partner_id=1,
+            bank=ResolvedBank(record_id=2, bank_fields_locked=False),
+            active_company_currency=ResolvedCurrencyRecord(
+                spec=project.currency.active_company_currency,
+                record_id=project.currency.active_company_currency.currency_id,
+            ),
+            displaced_reference_currency=ResolvedCurrencyRecord(
+                spec=project.currency.displaced_reference_currency,
+                record_id=project.currency.displaced_reference_currency.currency_id,
+            ),
+            tax_groups=tuple(
+                ResolvedTaxGroup(spec=item, record_id=item.record_id)
+                for item in project.tax_groups
+            ),
+            taxes=tuple(
+                ResolvedTax(
+                    spec=item,
+                    record_id=item.record_id,
+                    tax_group_id=item.cosmetic.target_group_id,
+                )
+                for item in project.taxes
+            ),
+            journals=tuple(
+                ResolvedJournal(spec=item, record_id=item.record_id)
+                for item in project.journals
+            ),
+            fiscal_positions=tuple(
+                ResolvedFiscalPosition(spec=item, record_id=item.record_id)
+                for item in project.fiscal_positions
+            ),
+            accounts=tuple(
+                ResolvedAccount(spec=item, record_id=item.record_id)
+                for item in project.chart.explicit_accounts
+            ),
+        )
+
     def _repartition_fixture(self) -> dict[int, tuple[RepartitionLineRef, ...]]:
         return {
             1: (
@@ -48,7 +98,7 @@ class PlannerTests(unittest.TestCase):
 
     def test_builds_full_cosmetic_plan(self) -> None:
         spec = load_spec(SPEC_PATH)
-        operations = build_cosmetic_plan(spec, company_partner_id=1)
+        operations = build_cosmetic_plan(spec, self._resolved_fixture(spec))
         first_operation = operations[0]
         assert isinstance(first_operation, WriteOperation)
         self.assertEqual(len(operations), 157)
@@ -59,7 +109,7 @@ class PlannerTests(unittest.TestCase):
 
     def test_currency_rename_moves_seeded_eur_first(self) -> None:
         spec = load_spec(SPEC_PATH)
-        operations = build_cosmetic_plan(spec, company_partner_id=1)
+        operations = build_cosmetic_plan(spec, self._resolved_fixture(spec))
         write_operations = [
             operation for operation in operations if isinstance(operation, WriteOperation)
         ]
@@ -83,7 +133,7 @@ class PlannerTests(unittest.TestCase):
 
     def test_plan_contains_german_translation_writes(self) -> None:
         spec = load_spec(SPEC_PATH)
-        operations = build_cosmetic_plan(spec, company_partner_id=1)
+        operations = build_cosmetic_plan(spec, self._resolved_fixture(spec))
         journal_translation = next(
             operation
             for operation in operations
@@ -108,7 +158,7 @@ class PlannerTests(unittest.TestCase):
 
     def test_plan_includes_account_codes_and_fiscal_position_ensures(self) -> None:
         spec = load_spec(SPEC_PATH)
-        operations = build_cosmetic_plan(spec, company_partner_id=1)
+        operations = build_cosmetic_plan(spec, self._resolved_fixture(spec))
         account_write = next(
             operation
             for operation in operations
@@ -132,7 +182,7 @@ class PlannerTests(unittest.TestCase):
         spec = load_spec(SPEC_PATH)
         operations = build_report_aware_plan(
             spec,
-            company_partner_id=1,
+            self._resolved_fixture(spec),
             repartition_lines_by_tax=self._repartition_fixture(),
         )
         self.assertEqual(len(operations), 179)

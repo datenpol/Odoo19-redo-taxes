@@ -33,19 +33,23 @@ During this transition:
 
 ## Operator UX
 
-Normal invocation:
+Current rollout invocation:
 
 ```text
 $datenpol-euro-demo URL API_KEY
 ```
 
-The wrapper should assume cosmetic mode and execute the full safe flow:
+Current rollout behavior:
+
+- The wrapper calls `run`.
+- The wrapper does not call `doctor` directly.
+- The wrapper assumes cosmetic-only operation.
+
+End-state behavior after the resolver refactor:
 
 1. `doctor`
 2. `apply`
 3. `validate`
-
-Until `doctor` is made public, the wrapper should call `run` instead of stitching stages together itself.
 
 Optional support commands for consultants:
 
@@ -53,7 +57,7 @@ Optional support commands for consultants:
 $datenpol-euro-demo validate URL API_KEY
 ```
 
-`doctor` becomes an optional consultant support command only after the resolver refactor is complete.
+`doctor` becomes an optional consultant support command only after the resolver refactor is complete and the command is made public.
 
 ## Architecture
 
@@ -114,8 +118,9 @@ Advanced only:
 
 `run`
 
-- Executes `doctor -> apply -> validate`.
-- Aborts before write if `doctor` fails.
+- In the current rollout it is the only public one-command operator path.
+- In the end-state contract it executes `doctor -> apply -> validate`.
+- In the end-state contract it aborts before write if `doctor` fails.
 - This is the default path for both skill wrappers.
 
 ## Exit Codes

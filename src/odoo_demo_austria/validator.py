@@ -21,7 +21,7 @@ from ._validator_report_aware import (
 from ._validator_support import ValidationIssue
 from .json2_client import Json2Client
 from .models import ProjectSpec
-from .planner import resolve_bank_trust_lock, resolve_company_partner_id
+from .planner import resolve_cosmetic_targets
 
 
 def validate_cosmetic_state(
@@ -29,30 +29,19 @@ def validate_cosmetic_state(
     spec: ProjectSpec,
 ) -> list[ValidationIssue]:
     lang = spec.localization.primary_display_language
-    partner_id = resolve_company_partner_id(client, spec.source_environment.company_id)
-    bank_fields_locked = resolve_bank_trust_lock(client, spec.identity.bank.partner_bank_id)
+    resolved = resolve_cosmetic_targets(client, spec)
     issues: list[ValidationIssue] = []
 
-    validate_company_identity(client, spec, issues)
-    validate_partner_identity(client, spec, partner_id, issues)
-    validate_bank_identity(client, spec, bank_fields_locked, issues)
-    validate_currency(
-        client,
-        spec,
-        spec.currency.displaced_reference_currency.currency_id,
-        issues,
-    )
-    validate_currency(
-        client,
-        spec,
-        spec.currency.active_company_currency.currency_id,
-        issues,
-    )
-    validate_tax_groups(client, spec, lang, issues)
-    validate_taxes(client, spec, lang, issues)
-    validate_journals(client, spec, lang, issues)
-    validate_fiscal_positions(client, spec, lang, issues)
-    validate_accounts(client, spec, lang, issues)
+    validate_company_identity(client, spec, resolved, issues)
+    validate_partner_identity(client, spec, resolved, issues)
+    validate_bank_identity(client, spec, resolved, issues)
+    validate_currency(client, resolved.displaced_reference_currency, lang, issues)
+    validate_currency(client, resolved.active_company_currency, lang, issues)
+    validate_tax_groups(client, resolved.tax_groups, lang, issues)
+    validate_taxes(client, resolved.taxes, lang, issues)
+    validate_journals(client, resolved.journals, lang, issues)
+    validate_fiscal_positions(client, resolved, lang, issues)
+    validate_accounts(client, resolved.accounts, lang, issues)
     return issues
 
 

@@ -124,9 +124,9 @@ def parse_identity(root: dict[str, Any]) -> IdentitySpec:
             website=require_str(company.get("website"), "identity.company.website"),
         ),
         bank=BankIdentity(
-            partner_bank_id=require_int(
-                bank.get("partner_bank_id"),
-                "identity.bank.partner_bank_id",
+            source_acc_number=optional_str(
+                bank.get("source_acc_number"),
+                "identity.bank.source_acc_number",
             ),
             acc_number=require_str(bank.get("acc_number"), "identity.bank.acc_number"),
             bank_id=optional_int(bank.get("bank_id"), "identity.bank.bank_id"),

@@ -44,7 +44,7 @@ identity:
     email: wohnatelier@datenpol.at
     website: https://www.datenpol.at
   bank:
-    partner_bank_id: 2
+    source_acc_number: BANK134567890
     acc_number: AT611904300234573201
     bank_id: null
     allow_out_payment: true

@@ -12,8 +12,7 @@ from .planner import (
     WriteOperation,
     build_cosmetic_plan,
     ensure_operation_safe,
-    resolve_bank_trust_lock,
-    resolve_company_partner_id,
+    resolve_cosmetic_targets,
 )
 from .validator import validate_cosmetic_state
 
@@ -50,13 +49,8 @@ def _build_operations(
     client: Json2Client,
     spec: ProjectSpec,
 ) -> list[PlanOperation]:
-    partner_id = resolve_company_partner_id(client, spec.source_environment.company_id)
-    bank_fields_locked = resolve_bank_trust_lock(client, spec.identity.bank.partner_bank_id)
-    return build_cosmetic_plan(
-        spec,
-        company_partner_id=partner_id,
-        bank_fields_locked=bank_fields_locked,
-    )
+    resolved = resolve_cosmetic_targets(client, spec)
+    return build_cosmetic_plan(spec, resolved)
 
 
 def _apply_operations(client: Json2Client, operations: list[PlanOperation]) -> int:

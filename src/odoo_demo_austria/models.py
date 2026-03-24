@@ -61,7 +61,7 @@ class CompanyIdentity:
 
 @dataclass(frozen=True)
 class BankIdentity:
-    partner_bank_id: int
+    source_acc_number: str | None
     acc_number: str
     bank_id: int | None
     allow_out_payment: bool
@@ -213,3 +213,60 @@ class ProjectSpec:
     chart: ChartSpec
     validation: ValidationSpec
     spec_path: Path
+
+
+@dataclass(frozen=True)
+class ResolvedBank:
+    record_id: int
+    bank_fields_locked: bool
+
+
+@dataclass(frozen=True)
+class ResolvedCurrencyRecord:
+    spec: CurrencyRecordSpec
+    record_id: int
+
+
+@dataclass(frozen=True)
+class ResolvedTaxGroup:
+    spec: TaxGroupSpec
+    record_id: int
+
+
+@dataclass(frozen=True)
+class ResolvedTax:
+    spec: TaxSpec
+    record_id: int
+    tax_group_id: int
+
+
+@dataclass(frozen=True)
+class ResolvedJournal:
+    spec: JournalSpec
+    record_id: int
+
+
+@dataclass(frozen=True)
+class ResolvedFiscalPosition:
+    spec: FiscalPositionSpec
+    record_id: int | None
+
+
+@dataclass(frozen=True)
+class ResolvedAccount:
+    spec: AccountSpec
+    record_id: int
+
+
+@dataclass(frozen=True)
+class ResolvedProject:
+    company_id: int
+    company_partner_id: int
+    bank: ResolvedBank
+    active_company_currency: ResolvedCurrencyRecord
+    displaced_reference_currency: ResolvedCurrencyRecord
+    tax_groups: tuple[ResolvedTaxGroup, ...]
+    taxes: tuple[ResolvedTax, ...]
+    journals: tuple[ResolvedJournal, ...]
+    fiscal_positions: tuple[ResolvedFiscalPosition, ...]
+    accounts: tuple[ResolvedAccount, ...]

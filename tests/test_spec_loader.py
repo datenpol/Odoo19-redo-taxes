@@ -130,7 +130,9 @@ class SpecLoaderTests(unittest.TestCase):
             sys.modules.pop(module_name, None)
             with patch("builtins.__import__", new=_raise_on_yaml_import):
                 module = importlib.import_module(module_name)
-                with self.assertRaises(SpecValidationError) as context:
+                models_module = importlib.import_module("odoo_demo_austria.models")
+                current_error_type = models_module.SpecValidationError
+                with self.assertRaises(current_error_type) as context:
                     module.load_spec(SPEC_PATH)
         finally:
             sys.modules.pop(module_name, None)

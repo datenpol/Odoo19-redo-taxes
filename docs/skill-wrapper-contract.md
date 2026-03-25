@@ -22,10 +22,11 @@ Completed:
 6. Report-aware runtime surfaces are removed from the operator contract.
 7. Initial repo-bound prompt assets exist for Codex and Claude Code.
 8. The operator runbook exists in `docs/operator-runbook.md`.
+9. Generated self-contained Codex and Claude skill artifacts are produced via `tools/build_datenpol_euro_demo_skill.py`.
+10. Repo-bound Codex prompt assets were removed in favor of generated artifacts.
 
 Still pending:
 
-- Replace the repo-bound prompt assets with generated self-contained skill artifacts for Codex and Claude.
 - Run the final live proof in `codexvalidation`.
 
 ## Operator UX

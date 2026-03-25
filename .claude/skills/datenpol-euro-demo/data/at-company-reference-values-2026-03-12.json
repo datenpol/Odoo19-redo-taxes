@@ -1,0 +1,708 @@
+{
+  "tax_groups": {
+    "base": [
+      {
+        "id": 3,
+        "name": "0%",
+        "country_id": [
+          12,
+          "Austria"
+        ]
+      },
+      {
+        "id": 8,
+        "name": "20%",
+        "country_id": [
+          12,
+          "Austria"
+        ]
+      }
+    ],
+    "de_DE": [
+      {
+        "id": 3,
+        "name": "0%",
+        "country_id": [
+          12,
+          "Österreich"
+        ]
+      },
+      {
+        "id": 8,
+        "name": "20%",
+        "country_id": [
+          12,
+          "Österreich"
+        ]
+      }
+    ]
+  },
+  "taxes": {
+    "base": [
+      {
+        "id": 13,
+        "name": "0% Ust EX art6",
+        "description": "<div>UST_015 Export 0% (§ 6 Abs. 1 Z 2 bis 6)</div>",
+        "invoice_label": "0%",
+        "amount": 0.0,
+        "amount_type": "percent",
+        "type_tax_use": "sale",
+        "tax_group_id": [
+          3,
+          "0%"
+        ],
+        "country_id": [
+          12,
+          "Austria"
+        ]
+      },
+      {
+        "id": 19,
+        "name": "20% Ust",
+        "description": "<div>UST_022 Normal tax rate 20%</div>",
+        "invoice_label": "20%",
+        "amount": 20.0,
+        "amount_type": "percent",
+        "type_tax_use": "sale",
+        "tax_group_id": [
+          8,
+          "20%"
+        ],
+        "country_id": [
+          12,
+          "Austria"
+        ]
+      },
+      {
+        "id": 47,
+        "name": "20% Vst",
+        "description": "<div>VST_060 Normal tax rate 20%</div>",
+        "invoice_label": "20%",
+        "amount": 20.0,
+        "amount_type": "percent",
+        "type_tax_use": "purchase",
+        "tax_group_id": [
+          8,
+          "20%"
+        ],
+        "country_id": [
+          12,
+          "Austria"
+        ]
+      },
+      {
+        "id": 60,
+        "name": "0% Vst",
+        "description": "<div>VST_071 IGE 0%</div>",
+        "invoice_label": "VST_071 IGE 0% (Art. 6 Abs. 2)",
+        "amount": 0.0,
+        "amount_type": "percent",
+        "type_tax_use": "purchase",
+        "tax_group_id": [
+          3,
+          "0%"
+        ],
+        "country_id": [
+          12,
+          "Austria"
+        ]
+      }
+    ],
+    "de_DE": [
+      {
+        "id": 13,
+        "name": "0% Ust EX art6",
+        "description": "UST_015 Export 0% (§ 6 Abs. 1 Z 2 bis 6)",
+        "invoice_label": "0%",
+        "amount": 0.0,
+        "amount_type": "percent",
+        "type_tax_use": "sale",
+        "tax_group_id": [
+          3,
+          "0%"
+        ],
+        "country_id": [
+          12,
+          "Österreich"
+        ]
+      },
+      {
+        "id": 19,
+        "name": "20% Ust",
+        "description": "UST_022 Normalsteuersatz 20%",
+        "invoice_label": "20%",
+        "amount": 20.0,
+        "amount_type": "percent",
+        "type_tax_use": "sale",
+        "tax_group_id": [
+          8,
+          "20%"
+        ],
+        "country_id": [
+          12,
+          "Österreich"
+        ]
+      },
+      {
+        "id": 47,
+        "name": "20% Vst",
+        "description": "VST_060 Normalsteuersatz 20%",
+        "invoice_label": "20%",
+        "amount": 20.0,
+        "amount_type": "percent",
+        "type_tax_use": "purchase",
+        "tax_group_id": [
+          8,
+          "20%"
+        ],
+        "country_id": [
+          12,
+          "Österreich"
+        ]
+      },
+      {
+        "id": 60,
+        "name": "0% Vst",
+        "description": "VST_071 IGE 0%",
+        "invoice_label": "VST_071 IGE 0% (Art. 6 Abs. 2)",
+        "amount": 0.0,
+        "amount_type": "percent",
+        "type_tax_use": "purchase",
+        "tax_group_id": [
+          3,
+          "0%"
+        ],
+        "country_id": [
+          12,
+          "Österreich"
+        ]
+      }
+    ]
+  },
+  "journals": {
+    "base": [
+      {
+        "id": 8,
+        "name": "Sales",
+        "code": "RE",
+        "type": "sale",
+        "default_account_id": [
+          202,
+          "Revenue 20%"
+        ]
+      },
+      {
+        "id": 9,
+        "name": "Purchases",
+        "code": "RECHN",
+        "type": "purchase",
+        "default_account_id": [
+          209,
+          "Purchased merchandise 20%"
+        ]
+      },
+      {
+        "id": 10,
+        "name": "Miscellaneous Operations",
+        "code": "SONST",
+        "type": "general",
+        "default_account_id": false
+      },
+      {
+        "id": 11,
+        "name": "Exchange Difference",
+        "code": "WECHS",
+        "type": "general",
+        "default_account_id": false
+      },
+      {
+        "id": 12,
+        "name": "Cash Basis Taxes",
+        "code": "CABA",
+        "type": "general",
+        "default_account_id": false
+      },
+      {
+        "id": 13,
+        "name": "Bank",
+        "code": "BNK1",
+        "type": "bank",
+        "default_account_id": [
+          284,
+          "Bank"
+        ]
+      },
+      {
+        "id": 14,
+        "name": "Inventory Valuation",
+        "code": "STJ",
+        "type": "general",
+        "default_account_id": false
+      },
+      {
+        "id": 20,
+        "name": "Tax Returns",
+        "code": "TAX",
+        "type": "general",
+        "default_account_id": false
+      }
+    ],
+    "de_DE": [
+      {
+        "id": 8,
+        "name": "Verkauf",
+        "code": "RE",
+        "type": "sale",
+        "default_account_id": [
+          202,
+          "Brutto-Umsatzerlöse im Inland (20%)"
+        ]
+      },
+      {
+        "id": 9,
+        "name": "Einkauf",
+        "code": "RECHN",
+        "type": "purchase",
+        "default_account_id": [
+          209,
+          "Wareneinkauf 20%"
+        ]
+      },
+      {
+        "id": 10,
+        "name": "Sonstiges",
+        "code": "SONST",
+        "type": "general",
+        "default_account_id": false
+      },
+      {
+        "id": 11,
+        "name": "Wechselkursdifferenz",
+        "code": "WECHS",
+        "type": "general",
+        "default_account_id": false
+      },
+      {
+        "id": 12,
+        "name": "Steuern aus Ist-Versteuerung",
+        "code": "CABA",
+        "type": "general",
+        "default_account_id": false
+      },
+      {
+        "id": 13,
+        "name": "Bank",
+        "code": "BNK1",
+        "type": "bank",
+        "default_account_id": [
+          284,
+          "Bank"
+        ]
+      },
+      {
+        "id": 14,
+        "name": "Bestandsbewertung",
+        "code": "STJ",
+        "type": "general",
+        "default_account_id": false
+      },
+      {
+        "id": 20,
+        "name": "Tax Returns",
+        "code": "TAX",
+        "type": "general",
+        "default_account_id": false
+      }
+    ]
+  },
+  "accounts": {
+    "base": [
+      {
+        "id": 101,
+        "code": false,
+        "name": "Other operating and office equipment",
+        "account_type": "asset_fixed"
+      },
+      {
+        "id": 116,
+        "code": false,
+        "name": "Other investments",
+        "account_type": "asset_non_current"
+      },
+      {
+        "id": 126,
+        "code": false,
+        "name": "Merchandise",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 130,
+        "code": false,
+        "name": "Trade receivables, domestic",
+        "account_type": "asset_receivable"
+      },
+      {
+        "id": 131,
+        "code": false,
+        "name": "Trade receivables, domestic (point of sale)",
+        "account_type": "asset_receivable"
+      },
+      {
+        "id": 144,
+        "code": false,
+        "name": "Other receivables and other assets",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 148,
+        "code": false,
+        "name": "Input tax 20%",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 167,
+        "code": false,
+        "name": "Prepaid Expenses",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 179,
+        "code": false,
+        "name": "Trade payables, domestic",
+        "account_type": "liability_payable"
+      },
+      {
+        "id": 183,
+        "code": false,
+        "name": "VAT 20%",
+        "account_type": "liability_current"
+      },
+      {
+        "id": 193,
+        "code": false,
+        "name": "Allocation account for tax authorities",
+        "account_type": "liability_payable"
+      },
+      {
+        "id": 194,
+        "code": false,
+        "name": "Allocation for wage tax",
+        "account_type": "liability_current"
+      },
+      {
+        "id": 195,
+        "code": false,
+        "name": "Allocation for employer contributions",
+        "account_type": "liability_current"
+      },
+      {
+        "id": 201,
+        "code": false,
+        "name": "Allocation account for goods/invoice receipt",
+        "account_type": "liability_payable"
+      },
+      {
+        "id": 202,
+        "code": false,
+        "name": "Revenue 20%",
+        "account_type": "income"
+      },
+      {
+        "id": 207,
+        "code": false,
+        "name": "Exchange rate gains from foreign currency transactions",
+        "account_type": "income_other"
+      },
+      {
+        "id": 208,
+        "code": false,
+        "name": "Cost of goods sold",
+        "account_type": "expense_direct_cost"
+      },
+      {
+        "id": 221,
+        "code": false,
+        "name": "Change in Stock - Raw Materials",
+        "account_type": "expense"
+      },
+      {
+        "id": 223,
+        "code": false,
+        "name": "Salaries - salaried employees",
+        "account_type": "expense"
+      },
+      {
+        "id": 251,
+        "code": false,
+        "name": "Money transfer charges",
+        "account_type": "expense"
+      },
+      {
+        "id": 254,
+        "code": false,
+        "name": "Exchange rate loss from foreign currency transactions",
+        "account_type": "expense"
+      },
+      {
+        "id": 258,
+        "code": false,
+        "name": "Selling expenses",
+        "account_type": "expense"
+      },
+      {
+        "id": 260,
+        "code": false,
+        "name": "Other operating expenses",
+        "account_type": "expense"
+      },
+      {
+        "id": 275,
+        "code": false,
+        "name": "Unused supplier cash discount",
+        "account_type": "income_other"
+      },
+      {
+        "id": 283,
+        "code": false,
+        "name": "Profit and loss statement",
+        "account_type": "equity_unaffected"
+      },
+      {
+        "id": 284,
+        "code": false,
+        "name": "Bank",
+        "account_type": "asset_cash"
+      },
+      {
+        "id": 285,
+        "code": false,
+        "name": "Bank Suspense Account",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 286,
+        "code": false,
+        "name": "Cash Difference Gain",
+        "account_type": "income_other"
+      },
+      {
+        "id": 287,
+        "code": false,
+        "name": "Cash Difference Loss",
+        "account_type": "expense"
+      },
+      {
+        "id": 288,
+        "code": false,
+        "name": "Liquidity Transfer",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 289,
+        "code": false,
+        "name": "Outstanding Receipts",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 290,
+        "code": false,
+        "name": "Outstanding Payments",
+        "account_type": "asset_current"
+      }
+    ],
+    "de_DE": [
+      {
+        "id": 101,
+        "code": false,
+        "name": "Andere Betriebs- und Geschäftsausstattung",
+        "account_type": "asset_fixed"
+      },
+      {
+        "id": 116,
+        "code": false,
+        "name": "Sonstige Beteiligungen",
+        "account_type": "asset_non_current"
+      },
+      {
+        "id": 126,
+        "code": false,
+        "name": "Handelswaren",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 130,
+        "code": false,
+        "name": "Forderungen aus Lieferungen und Leistungen Inland",
+        "account_type": "asset_receivable"
+      },
+      {
+        "id": 131,
+        "code": false,
+        "name": "Forderungen aus Lieferungen und Leistungen Inland (Point Of Sale)",
+        "account_type": "asset_receivable"
+      },
+      {
+        "id": 144,
+        "code": false,
+        "name": "Sonstige Forderungen und Vermögensgegenstände",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 148,
+        "code": false,
+        "name": "Vorsteuern 20%",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 167,
+        "code": false,
+        "name": "Aktive Rechnungsabgrenzungsposten",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 179,
+        "code": false,
+        "name": "Lieferverbindlichkeiten Inland",
+        "account_type": "liability_payable"
+      },
+      {
+        "id": 183,
+        "code": false,
+        "name": "Umsatzsteuer 20%",
+        "account_type": "liability_current"
+      },
+      {
+        "id": 193,
+        "code": false,
+        "name": "Verrechnungskonto Finanzamt",
+        "account_type": "liability_payable"
+      },
+      {
+        "id": 194,
+        "code": false,
+        "name": "Verrechnung Lohnsteuer",
+        "account_type": "liability_current"
+      },
+      {
+        "id": 195,
+        "code": false,
+        "name": "Verrechnung Dienstgeberbeitrag",
+        "account_type": "liability_current"
+      },
+      {
+        "id": 201,
+        "code": false,
+        "name": "WERE Verrechnungskonto",
+        "account_type": "liability_payable"
+      },
+      {
+        "id": 202,
+        "code": false,
+        "name": "Brutto-Umsatzerlöse im Inland (20%)",
+        "account_type": "income"
+      },
+      {
+        "id": 207,
+        "code": false,
+        "name": "Kursgewinne aus Fremdwährungstransaktionen",
+        "account_type": "income_other"
+      },
+      {
+        "id": 208,
+        "code": false,
+        "name": "Wareneinsatz",
+        "account_type": "expense_direct_cost"
+      },
+      {
+        "id": 221,
+        "code": false,
+        "name": "Bestandsveränderung - Rohstoffe",
+        "account_type": "expense"
+      },
+      {
+        "id": 223,
+        "code": false,
+        "name": "Gehälter - Angestellte",
+        "account_type": "expense"
+      },
+      {
+        "id": 251,
+        "code": false,
+        "name": "Spesen des Geldverkehrs",
+        "account_type": "expense"
+      },
+      {
+        "id": 254,
+        "code": false,
+        "name": "Kursverluste aus Fremdwährungstransaktionen",
+        "account_type": "expense"
+      },
+      {
+        "id": 258,
+        "code": false,
+        "name": "Vertriebskosten",
+        "account_type": "expense"
+      },
+      {
+        "id": 260,
+        "code": false,
+        "name": "Sonstige betriebliche Aufwendungen",
+        "account_type": "expense"
+      },
+      {
+        "id": 275,
+        "code": false,
+        "name": "Nicht ausgenützte Lieferantenskonti",
+        "account_type": "income_other"
+      },
+      {
+        "id": 283,
+        "code": false,
+        "name": "Gewinn- und Verlustrechnung",
+        "account_type": "equity_unaffected"
+      },
+      {
+        "id": 284,
+        "code": false,
+        "name": "Bank",
+        "account_type": "asset_cash"
+      },
+      {
+        "id": 285,
+        "code": false,
+        "name": "Bankzwischenkonto",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 286,
+        "code": false,
+        "name": "Kassendifferenz (Gewinn)",
+        "account_type": "income_other"
+      },
+      {
+        "id": 287,
+        "code": false,
+        "name": "Bargelddifferenz (Verlust)",
+        "account_type": "expense"
+      },
+      {
+        "id": 288,
+        "code": false,
+        "name": "Liquiditätstransfer",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 289,
+        "code": false,
+        "name": "Ausstehende Eingänge",
+        "account_type": "asset_current"
+      },
+      {
+        "id": 290,
+        "code": false,
+        "name": "Ausstehende Zahlungen",
+        "account_type": "asset_current"
+      }
+    ]
+  }
+}

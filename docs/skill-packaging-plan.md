@@ -97,8 +97,15 @@ The packaging build should:
 
 ## Current Status
 
-This packaging model is planned and documented, but not yet implemented.
+This packaging model is implemented.
 
-Current repo-bound prompt assets must not be described as globally installable self-contained skills.
+Build entry point:
 
-See `docs/skill-implementation-checklist.md` for the concrete implementation worklist.
+- `tools/build_datenpol_euro_demo_skill.py`
+
+Source vs output:
+
+- editable source: `skill_src/datenpol-euro-demo`
+- generated outputs: `.agents/skills/datenpol-euro-demo` and `.claude/skills/datenpol-euro-demo`
+
+See `docs/skill-implementation-checklist.md` for the staged worklist and validation gates.

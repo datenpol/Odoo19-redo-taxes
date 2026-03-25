@@ -41,10 +41,17 @@ The planned shared engine contract for the skill wrappers is documented in `docs
 
 Operator guidance and wrapper installation notes live in `docs/operator-runbook.md`.
 
-Wrapper assets in this repo:
+Skill packaging paths in this repo:
 
-- Codex: `skills/codex/datenpol-euro-demo`
-- Claude Code: `.claude/skills/datenpol-euro-demo`
+- Source templates: `skill_src/datenpol-euro-demo`
+- Generated Codex artifact: `.agents/skills/datenpol-euro-demo`
+- Generated Claude artifact: `.claude/skills/datenpol-euro-demo`
+
+Generate artifacts:
+
+```powershell
+python tools/build_datenpol_euro_demo_skill.py
+```
 
 Notes:
 

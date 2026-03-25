@@ -111,11 +111,11 @@ Completed:
 6. Remove `report-aware` runtime surfaces from the operator contract.
 7. Add the initial Codex and Claude prompt assets in-repo.
 8. Add the operator runbook.
+9. Replace repo-bound prompt assets with generated self-contained Codex and Claude skill artifacts.
 
 Remaining:
 
-1. Replace the repo-bound prompt assets with generated self-contained Codex and Claude skill artifacts.
-2. Run the final proof in `codexvalidation`.
+1. Run the final proof in `codexvalidation`.
 
 Why this order matters:
 
@@ -172,8 +172,8 @@ Delivered in repo now:
 
 - mapping spec
 - one-click patcher
-- initial Codex prompt asset
-- initial Claude Code prompt asset
+- generated Codex skill artifact
+- generated Claude Code skill artifact
 - operator runbook
 - known-limits note through the contract docs and runbook
 

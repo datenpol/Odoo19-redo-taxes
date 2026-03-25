@@ -1,0 +1,3 @@
+interface:
+  display_name: "Datenpol Euro Demo"
+  short_description: "Explicit launcher for the Austrian cosmetic Odoo demo patcher"

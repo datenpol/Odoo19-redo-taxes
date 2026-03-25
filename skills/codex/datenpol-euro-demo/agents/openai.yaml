@@ -1,4 +1,0 @@
-interface:
-  display_name: "Datenpol Euro Demo"
-  short_description: "Run the Austria demo patcher"
-  default_prompt: "Use $datenpol-euro-demo to run the Austrian cosmetic Odoo demo patcher against the target URL with the provided API key."

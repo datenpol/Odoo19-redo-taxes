@@ -13,15 +13,19 @@ This means:
 
 ## Packaging Status
 
-The self-contained Codex and Claude skill artifacts described in this document are the target packaging model, not the current implementation status of this repo.
+Self-contained Codex and Claude skill artifacts are now generated in this repository.
 
-Current reality:
+Generation command:
 
-- the authoritative operator path today is still the manual repo command path below
-- do not document or install the current repo-bound Codex prompt asset as a global skill
-- the future packaged skill should install and run without requiring this repo checkout on the target machine
+```powershell
+python tools/build_datenpol_euro_demo_skill.py
+```
 
-See `docs/skill-packaging-plan.md` for the source-of-truth and build model behind the future generated skill artifacts.
+Rules:
+
+- treat `skill_src/datenpol-euro-demo` as source
+- treat `.agents/skills/datenpol-euro-demo` and `.claude/skills/datenpol-euro-demo` as generated outputs
+- rerun the build script after changing runtime or skill templates
 
 ## Current Manual Operator Path
 
@@ -56,7 +60,7 @@ $env:ODOO_DB = "<DBNAME>"
 python tools/odoo_demo_austria.py run --format json --base-url "<URL>"
 ```
 
-## Planned Skill Artifacts
+## Generated Skill Artifacts
 
 Codex generated skill artifact:
 

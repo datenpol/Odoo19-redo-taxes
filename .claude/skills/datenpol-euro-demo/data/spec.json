@@ -1,0 +1,1197 @@
+{
+  "version": "draft-2026-03-12",
+  "status": "draft",
+  "source_environment": {
+    "name": "codexplayground",
+    "url": "https://codexplayground.odoo19.at/odoo",
+    "company_id": 1,
+    "company_name": "My Company (San Francisco)"
+  },
+  "reference_environment": {
+    "same_database": true,
+    "company_id": 3,
+    "company_name": "AT Company"
+  },
+  "design_principles": {
+    "default_mode": "cosmetic",
+    "preserve_logic_by_default": true,
+    "idempotent_required": true,
+    "prompt_pack_reliability_over_prompt_count": true,
+    "exact_l10n_at_reference_first": true,
+    "fallback_only_when_no_clean_reference_exists": true,
+    "translation_aware_spec_required": true,
+    "direct_reference_translation_override_allowed": true
+  },
+  "localization": {
+    "primary_display_language": "de_DE",
+    "reference_harvest_date": "2026-03-12",
+    "reference_snapshot_file": "data/at-company-reference-values-2026-03-12.json",
+    "translation_write_policy": [
+      "Write canonical base values without context.lang.",
+      "Write de_DE values to translatable fields with context.lang = de_DE.",
+      "Use exact AT Company base and de_DE values when a clean reference exists.",
+      "Allow manual de_DE overrides only when the installed AT translation is missing or presentation-poor."
+    ]
+  },
+  "identity": {
+    "company": {
+      "target_company_name": "Datenpol Wohnatelier GmbH",
+      "target_partner_name": "Datenpol Wohnatelier GmbH",
+      "street": "Mariahilfer Strasse 182",
+      "street2": "",
+      "zip": "1150",
+      "city": "Wien",
+      "country_id": 12,
+      "state_id": null,
+      "vat": "ATU12345675",
+      "phone": "+43 1 997 12 34",
+      "email": "wohnatelier@datenpol.at",
+      "website": "https://www.datenpol.at"
+    },
+    "bank": {
+      "source_acc_number": "BANK134567890",
+      "acc_number": "AT611904300234573201",
+      "bank_id": null,
+      "allow_out_payment": true
+    }
+  },
+  "currency": {
+    "strategy": "rename_company_currency_in_place",
+    "active_company_currency": {
+      "currency_id": 1,
+      "source_code": "USD",
+      "target_code": "EUR",
+      "target_symbol": "€",
+      "target_full_name": {
+        "base": "Euro",
+        "translations": {
+          "de_DE": "Euro"
+        }
+      },
+      "target_unit_label": {
+        "base": "Euro",
+        "translations": {
+          "de_DE": "Euro"
+        }
+      },
+      "target_subunit_label": {
+        "base": "Cent",
+        "translations": {
+          "de_DE": "Cent"
+        }
+      },
+      "target_position": "after"
+    },
+    "displaced_reference_currency": {
+      "currency_id": 126,
+      "source_code": "EUR",
+      "target_code": "XEU",
+      "target_symbol": "X€",
+      "target_full_name": {
+        "base": "X Euro",
+        "translations": {
+          "de_DE": "X Euro"
+        }
+      },
+      "target_unit_label": {
+        "base": "X Euro",
+        "translations": {
+          "de_DE": "X Euro"
+        }
+      },
+      "target_subunit_label": {
+        "base": "X Cent",
+        "translations": {
+          "de_DE": "X Cent"
+        }
+      },
+      "target_position": "after"
+    }
+  },
+  "tax_groups": [
+    {
+      "id": 1,
+      "source_name": "Tax 15%",
+      "cosmetic": {
+        "target_name": {
+          "base": "20%",
+          "translations": {
+            "de_DE": "20%"
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "source_name": "Tax 0%",
+      "cosmetic": {
+        "target_name": {
+          "base": "0%",
+          "translations": {
+            "de_DE": "0%"
+          }
+        }
+      }
+    }
+  ],
+  "taxes": [
+    {
+      "id": 1,
+      "source_name": "15%",
+      "source_type_tax_use": "sale",
+      "cosmetic": {
+        "target_name": {
+          "base": "20% Ust",
+          "translations": {
+            "de_DE": "20% Ust"
+          }
+        },
+        "target_invoice_label": {
+          "base": "20%",
+          "translations": {
+            "de_DE": "20%"
+          }
+        },
+        "target_amount": 20.0,
+        "target_group_id": 1,
+        "target_description": {
+          "base_html": "<div>UST_022 Normal tax rate 20%</div>",
+          "translations": {
+            "de_DE": "UST_022 Normalsteuersatz 20%"
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "source_name": "15%",
+      "source_type_tax_use": "purchase",
+      "cosmetic": {
+        "target_name": {
+          "base": "20% Vst",
+          "translations": {
+            "de_DE": "20% Vst"
+          }
+        },
+        "target_invoice_label": {
+          "base": "20%",
+          "translations": {
+            "de_DE": "20%"
+          }
+        },
+        "target_amount": 20.0,
+        "target_group_id": 1,
+        "target_description": {
+          "base_html": "<div>VST_060 Normal tax rate 20%</div>",
+          "translations": {
+            "de_DE": "VST_060 Normalsteuersatz 20%"
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "source_name": "0% Exports",
+      "source_type_tax_use": "sale",
+      "cosmetic": {
+        "target_name": {
+          "base": "0% Ust EX art6",
+          "translations": {
+            "de_DE": "0% Ust EX art6"
+          }
+        },
+        "target_invoice_label": {
+          "base": "0%",
+          "translations": {
+            "de_DE": "0%"
+          }
+        },
+        "target_amount": 0.0,
+        "target_group_id": 2,
+        "target_description": {
+          "base_html": "<div>UST_015 Export 0% (§ 6 Abs. 1 Z 2 bis 6)</div>",
+          "translations": {
+            "de_DE": "UST_015 Export 0% (§ 6 Abs. 1 Z 2 bis 6)"
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "source_name": "0% Imports",
+      "source_type_tax_use": "purchase",
+      "cosmetic": {
+        "target_name": {
+          "base": "0% Vst",
+          "translations": {
+            "de_DE": "0% Vst"
+          }
+        },
+        "target_invoice_label": {
+          "base": "VST_071 IGE 0% (Art. 6 Abs. 2)",
+          "translations": {
+            "de_DE": "VST_071 IGE 0% (Art. 6 Abs. 2)"
+          }
+        },
+        "target_amount": 0.0,
+        "target_group_id": 2,
+        "target_description": {
+          "base_html": "<div>VST_071 IGE 0%</div>",
+          "translations": {
+            "de_DE": "VST_071 IGE 0%"
+          }
+        }
+      }
+    }
+  ],
+  "journals": [
+    {
+      "id": 1,
+      "source_name": "Sales",
+      "target_name": {
+        "base": "Sales",
+        "translations": {
+          "de_DE": "Verkauf"
+        }
+      },
+      "reference_journal_id": 8
+    },
+    {
+      "id": 2,
+      "source_name": "Purchases",
+      "target_name": {
+        "base": "Purchases",
+        "translations": {
+          "de_DE": "Einkauf"
+        }
+      },
+      "reference_journal_id": 9
+    },
+    {
+      "id": 3,
+      "source_name": "Miscellaneous Operations",
+      "target_name": {
+        "base": "Miscellaneous Operations",
+        "translations": {
+          "de_DE": "Sonstiges"
+        }
+      },
+      "reference_journal_id": 10
+    },
+    {
+      "id": 4,
+      "source_name": "Exchange Difference",
+      "target_name": {
+        "base": "Exchange Difference",
+        "translations": {
+          "de_DE": "Wechselkursdifferenz"
+        }
+      },
+      "reference_journal_id": 11
+    },
+    {
+      "id": 5,
+      "source_name": "Cash Basis Taxes",
+      "target_name": {
+        "base": "Cash Basis Taxes",
+        "translations": {
+          "de_DE": "Steuern aus Ist-Versteuerung"
+        }
+      },
+      "reference_journal_id": 12
+    },
+    {
+      "id": 6,
+      "source_name": "Bank",
+      "target_name": {
+        "base": "Bank",
+        "translations": {
+          "de_DE": "Bank"
+        }
+      },
+      "reference_journal_id": 13
+    },
+    {
+      "id": 7,
+      "source_name": "Bestandsbewertung",
+      "target_name": {
+        "base": "Inventory Valuation",
+        "translations": {
+          "de_DE": "Bestandsbewertung"
+        }
+      },
+      "reference_journal_id": 14
+    },
+    {
+      "id": 15,
+      "source_name": "Kassensystem",
+      "target_name": {
+        "base": "Kassensystem",
+        "translations": {
+          "de_DE": "Kassensystem"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "source_name": "Bargeld (Möbelhaus)",
+      "target_name": {
+        "base": "Bargeld (Schauraum Wien)",
+        "translations": {
+          "de_DE": "Bargeld (Schauraum Wien)"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "source_name": "Bargeld (Kleidergeschaeft)",
+      "target_name": {
+        "base": "Bargeld (Schauraum Salzburg)",
+        "translations": {
+          "de_DE": "Bargeld (Schauraum Salzburg)"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "source_name": "Bargeld (Baeckerei)",
+      "target_name": {
+        "base": "Bargeld (Outlet Linz)",
+        "translations": {
+          "de_DE": "Bargeld (Outlet Linz)"
+        }
+      }
+    },
+    {
+      "id": 19,
+      "source_name": "Tax Returns",
+      "target_name": {
+        "base": "Tax Returns",
+        "translations": {
+          "de_DE": "Steuererklärungen"
+        }
+      },
+      "reference_journal_id": 20
+    },
+    {
+      "id": 21,
+      "source_name": "Journal Loan Demo",
+      "target_name": {
+        "base": "Loan Demo Journal",
+        "translations": {
+          "de_DE": "Darlehen Demo"
+        }
+      }
+    }
+  ],
+  "fiscal_positions": [
+    {
+      "id": 1,
+      "source_name": "Domestic",
+      "create_if_missing": false,
+      "target_name": {
+        "base": "National",
+        "translations": {
+          "de_DE": "National"
+        }
+      },
+      "sequence": 10,
+      "auto_apply": true,
+      "country_id": 12,
+      "country_group_id": null,
+      "vat_required": false,
+      "foreign_vat": null,
+      "target_tax_ids": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 2,
+      "source_name": "Foreign Trade",
+      "create_if_missing": false,
+      "target_name": {
+        "base": "National + EU (ohne UID)",
+        "translations": {
+          "de_DE": "National + EU (ohne UID)"
+        }
+      },
+      "sequence": 30,
+      "auto_apply": true,
+      "country_id": null,
+      "country_group_id": 9,
+      "vat_required": false,
+      "foreign_vat": null,
+      "target_tax_ids": [
+        1,
+        2
+      ]
+    },
+    {
+      "source_name": null,
+      "create_if_missing": true,
+      "target_name": {
+        "base": "Europäische Union",
+        "translations": {
+          "de_DE": "Europäische Union"
+        }
+      },
+      "sequence": 20,
+      "auto_apply": true,
+      "country_id": null,
+      "country_group_id": 9,
+      "vat_required": true,
+      "foreign_vat": null,
+      "target_tax_ids": [
+        3,
+        4
+      ]
+    },
+    {
+      "source_name": null,
+      "create_if_missing": true,
+      "target_name": {
+        "base": "Drittstaaten",
+        "translations": {
+          "de_DE": "Drittstaaten"
+        }
+      },
+      "sequence": 40,
+      "auto_apply": true,
+      "country_id": null,
+      "country_group_id": null,
+      "vat_required": false,
+      "foreign_vat": null,
+      "target_tax_ids": [
+        3,
+        4
+      ]
+    }
+  ],
+  "chart": {
+    "strategy": "write_austrian_four_digit_codes_and_labels",
+    "reason": "Use exact Austrian l10n_at account codes when the official template gives a clean match. Where the live AT reference company is code-less or the seeded San Francisco chart has no direct Austrian counterpart, use an explicit four-digit fallback code to keep the chart visually Austrian.",
+    "name_precedence": [
+      "exact AT Company base and de_DE names when a clean match exists",
+      "manual de_DE display override only when the installed AT translation stays visibly English or awkward",
+      "fallback base and de_DE labels only when no clean AT Company reference exists"
+    ],
+    "core_reference_accounts": {
+      "bank": 284,
+      "bank_suspense": 285,
+      "liquidity_transfer": 288,
+      "outstanding_receipts": 289,
+      "outstanding_payments": 290,
+      "input_tax_20": 148,
+      "vat_20": 183,
+      "tax_authority_allocation": 193
+    },
+    "explicit_accounts": [
+      {
+        "id": 1,
+        "code": "2300",
+        "source_name": "Current Assets",
+        "target_name": {
+          "base": "Other receivables and other assets",
+          "translations": {
+            "de_DE": "Sonstige Forderungen und Vermögensgegenstände"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 144
+      },
+      {
+        "id": 43,
+        "code": "2099",
+        "source_name": "Account Receivable (PoS)",
+        "target_name": {
+          "base": "Trade receivables, domestic (point of sale)",
+          "translations": {
+            "de_DE": "Forderungen aus Lieferungen und Leistungen Inland (Kassensystem)"
+          }
+        },
+        "posted_lines": 4,
+        "reference_account_id": 131
+      },
+      {
+        "id": 45,
+        "code": "2800",
+        "source_name": "Bank",
+        "target_name": {
+          "base": "Bank",
+          "translations": {
+            "de_DE": "Bank"
+          }
+        },
+        "posted_lines": 11,
+        "reference_account_id": 284
+      },
+      {
+        "id": 46,
+        "code": "2885",
+        "source_name": "Bank Suspense Account",
+        "target_name": {
+          "base": "Bank Suspense Account",
+          "translations": {
+            "de_DE": "Bankzwischenkonto"
+          }
+        },
+        "posted_lines": 9,
+        "reference_account_id": 285
+      },
+      {
+        "id": 48,
+        "code": "2891",
+        "source_name": "Ausstehende Eingaenge",
+        "target_name": {
+          "base": "Outstanding Receipts",
+          "translations": {
+            "de_DE": "Ausstehende Eingänge"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 289
+      },
+      {
+        "id": 49,
+        "code": "2892",
+        "source_name": "Ausstehende Zahlungen",
+        "target_name": {
+          "base": "Outstanding Payments",
+          "translations": {
+            "de_DE": "Ausstehende Zahlungen"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 290
+      },
+      {
+        "id": 291,
+        "code": "2700",
+        "source_name": "Bargeld (Moebelhaus)",
+        "target_name": {
+          "base": "Bargeld (Schauraum Wien)",
+          "translations": {
+            "de_DE": "Bargeld (Schauraum Wien)"
+          }
+        },
+        "posted_lines": 3
+      },
+      {
+        "id": 292,
+        "code": "2710",
+        "source_name": "Bargeld (Kleidergeschaeft)",
+        "target_name": {
+          "base": "Bargeld (Schauraum Salzburg)",
+          "translations": {
+            "de_DE": "Bargeld (Schauraum Salzburg)"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 293,
+        "code": "2720",
+        "source_name": "Bargeld (Baeckerei)",
+        "target_name": {
+          "base": "Bargeld (Outlet Linz)",
+          "translations": {
+            "de_DE": "Bargeld (Outlet Linz)"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 47,
+        "code": "2880",
+        "source_name": "Liquidity Transfer",
+        "target_name": {
+          "base": "Liquidity Transfer",
+          "translations": {
+            "de_DE": "Liquiditätstransfer"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 288
+      },
+      {
+        "id": 2,
+        "code": "1600",
+        "source_name": "Stock Valuation",
+        "target_name": {
+          "base": "Merchandise",
+          "translations": {
+            "de_DE": "Handelswaren"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 126
+      },
+      {
+        "id": 3,
+        "code": "1530",
+        "source_name": "Cost of Production",
+        "target_name": {
+          "base": "Cost of production",
+          "translations": {
+            "de_DE": "Herstellungskosten"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 4,
+        "code": "1540",
+        "source_name": "Work in Progress",
+        "target_name": {
+          "base": "Work in Progress",
+          "translations": {
+            "de_DE": "Unfertige Erzeugnisse"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 5,
+        "code": "2000",
+        "source_name": "Account Receivable",
+        "target_name": {
+          "base": "Trade receivables, domestic",
+          "translations": {
+            "de_DE": "Forderungen aus Lieferungen und Leistungen Inland"
+          }
+        },
+        "posted_lines": 16,
+        "reference_account_id": 130
+      },
+      {
+        "id": 6,
+        "code": "3740",
+        "source_name": "Products to receive",
+        "target_name": {
+          "base": "Allocation account for goods/invoice receipt",
+          "translations": {
+            "de_DE": "WERE Verrechnungskonto"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 201
+      },
+      {
+        "id": 7,
+        "code": "2390",
+        "source_name": "Owner's Current Account",
+        "target_name": {
+          "base": "Owner current account",
+          "translations": {
+            "de_DE": "Verrechnungskonto Inhaber"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 8,
+        "code": "2900",
+        "source_name": "Prepaid Expenses",
+        "target_name": {
+          "base": "Prepaid Expenses",
+          "translations": {
+            "de_DE": "Aktive Rechnungsabgrenzungsposten"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 167
+      },
+      {
+        "id": 9,
+        "code": "2500",
+        "source_name": "Tax Paid",
+        "target_name": {
+          "base": "Input tax 20%",
+          "translations": {
+            "de_DE": "Vorsteuern 20%"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 148
+      },
+      {
+        "id": 10,
+        "code": "3531",
+        "source_name": "Tax Receivable",
+        "target_name": {
+          "base": "Allocation account for tax authorities",
+          "translations": {
+            "de_DE": "Verrechnungskonto Finanzamt"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 193
+      },
+      {
+        "id": 11,
+        "code": "1800",
+        "source_name": "Prepayments",
+        "target_name": {
+          "base": "Prepayments",
+          "translations": {
+            "de_DE": "Anzahlungen"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 12,
+        "code": "0660",
+        "source_name": "Fixed Asset",
+        "target_name": {
+          "base": "Other operating and office equipment",
+          "translations": {
+            "de_DE": "Andere Betriebs- und Geschäftsausstattung"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 101
+      },
+      {
+        "id": 13,
+        "code": "0830",
+        "source_name": "Non-current assets",
+        "target_name": {
+          "base": "Other investments",
+          "translations": {
+            "de_DE": "Sonstige Beteiligungen"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 116
+      },
+      {
+        "id": 14,
+        "code": "3590",
+        "source_name": "Current Liabilities",
+        "target_name": {
+          "base": "Current liabilities",
+          "translations": {
+            "de_DE": "Kurzfristige Verbindlichkeiten"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 44,
+        "code": "3580",
+        "source_name": "Credit Card",
+        "target_name": {
+          "base": "Credit card clearing",
+          "translations": {
+            "de_DE": "Kreditkarte"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 15,
+        "code": "3300",
+        "source_name": "Account Payable",
+        "target_name": {
+          "base": "Trade payables, domestic",
+          "translations": {
+            "de_DE": "Lieferverbindlichkeiten Inland"
+          }
+        },
+        "posted_lines": 5,
+        "reference_account_id": 179
+      },
+      {
+        "id": 16,
+        "code": "3745",
+        "source_name": "Bills to receive",
+        "target_name": {
+          "base": "Pending vendor bills",
+          "translations": {
+            "de_DE": "Noch nicht erfasste Eingangsrechnungen"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 17,
+        "code": "3900",
+        "source_name": "Deferred Revenue",
+        "target_name": {
+          "base": "Deferred revenue",
+          "translations": {
+            "de_DE": "Passive Rechnungsabgrenzung"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 18,
+        "code": "3560",
+        "source_name": "Salary Payable",
+        "target_name": {
+          "base": "Salary payable",
+          "translations": {
+            "de_DE": "Verbindlichkeiten Löhne und Gehälter"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 19,
+        "code": "3540",
+        "source_name": "Employee Payroll Taxes",
+        "target_name": {
+          "base": "Allocation for wage tax",
+          "translations": {
+            "de_DE": "Verrechnung Lohnsteuer"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 194
+      },
+      {
+        "id": 20,
+        "code": "3541",
+        "source_name": "Employer Payroll Taxes",
+        "target_name": {
+          "base": "Allocation for employer contributions",
+          "translations": {
+            "de_DE": "Verrechnung Dienstgeberbeitrag"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 195
+      },
+      {
+        "id": 21,
+        "code": "3500",
+        "source_name": "Tax Received",
+        "target_name": {
+          "base": "VAT 20%",
+          "translations": {
+            "de_DE": "Umsatzsteuer 20%"
+          }
+        },
+        "posted_lines": 3,
+        "reference_account_id": 183
+      },
+      {
+        "id": 22,
+        "code": "3530",
+        "source_name": "Tax Payable",
+        "target_name": {
+          "base": "Allocation account for tax authorities",
+          "translations": {
+            "de_DE": "Verrechnungskonto Finanzamt"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 193
+      },
+      {
+        "id": 23,
+        "code": "3690",
+        "source_name": "Non-current Liabilities",
+        "target_name": {
+          "base": "Non-current liabilities",
+          "translations": {
+            "de_DE": "Langfristige Verbindlichkeiten"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 24,
+        "code": "9000",
+        "source_name": "Capital",
+        "target_name": {
+          "base": "Equity",
+          "translations": {
+            "de_DE": "Eigenkapital"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 25,
+        "code": "9190",
+        "source_name": "Dividends",
+        "target_name": {
+          "base": "Dividends",
+          "translations": {
+            "de_DE": "Gewinnausschüttungen"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 26,
+        "code": "4000",
+        "source_name": "Product Sales",
+        "target_name": {
+          "base": "Revenue 20%",
+          "translations": {
+            "de_DE": "Brutto-Umsatzerlöse im Inland (20%)"
+          }
+        },
+        "posted_lines": 23,
+        "reference_account_id": 202
+      },
+      {
+        "id": 27,
+        "code": "4860",
+        "source_name": "Foreign Exchange Gain",
+        "target_name": {
+          "base": "Exchange rate gains from foreign currency transactions",
+          "translations": {
+            "de_DE": "Kursgewinne aus Fremdwährungstransaktionen"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 207
+      },
+      {
+        "id": 28,
+        "code": "4845",
+        "source_name": "Cash Difference Gain",
+        "target_name": {
+          "base": "Cash Difference Gain",
+          "translations": {
+            "de_DE": "Kassendifferenz (Gewinn)"
+          }
+        },
+        "posted_lines": 1,
+        "reference_account_id": 286
+      },
+      {
+        "id": 29,
+        "code": "7895",
+        "source_name": "Cash Discount Loss",
+        "target_name": {
+          "base": "Cash discount expense",
+          "translations": {
+            "de_DE": "Skontoaufwand"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 30,
+        "code": "4800",
+        "source_name": "Other Income",
+        "target_name": {
+          "base": "Other operating income",
+          "translations": {
+            "de_DE": "Sonstige betriebliche Erträge"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 31,
+        "code": "5000",
+        "source_name": "Cost of Goods Sold",
+        "target_name": {
+          "base": "Cost of goods sold",
+          "translations": {
+            "de_DE": "Wareneinsatz"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 208
+      },
+      {
+        "id": 32,
+        "code": "7990",
+        "source_name": "Expenses",
+        "target_name": {
+          "base": "Other operating expenses",
+          "translations": {
+            "de_DE": "Sonstige betriebliche Aufwendungen"
+          }
+        },
+        "posted_lines": 6,
+        "reference_account_id": 260
+      },
+      {
+        "id": 33,
+        "code": "5880",
+        "source_name": "Stock Variation",
+        "target_name": {
+          "base": "Change in Stock - Raw Materials",
+          "translations": {
+            "de_DE": "Bestandsveränderung - Rohstoffe"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 221
+      },
+      {
+        "id": 34,
+        "code": "0670",
+        "source_name": "Purchase of Equipments",
+        "target_name": {
+          "base": "Office equipment purchases",
+          "translations": {
+            "de_DE": "Anschaffung Betriebs- und Geschäftsausstattung"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 35,
+        "code": "7000",
+        "source_name": "Rent",
+        "target_name": {
+          "base": "Rent expense",
+          "translations": {
+            "de_DE": "Mietaufwand"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 36,
+        "code": "7790",
+        "source_name": "Bank Fees",
+        "target_name": {
+          "base": "Money transfer charges",
+          "translations": {
+            "de_DE": "Spesen des Geldverkehrs"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 251
+      },
+      {
+        "id": 37,
+        "code": "6200",
+        "source_name": "Salary Expenses",
+        "target_name": {
+          "base": "Salaries - salaried employees",
+          "translations": {
+            "de_DE": "Gehälter - Angestellte"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 223
+      },
+      {
+        "id": 38,
+        "code": "7860",
+        "source_name": "Foreign Exchange Loss",
+        "target_name": {
+          "base": "Exchange rate loss from foreign currency transactions",
+          "translations": {
+            "de_DE": "Kursverluste aus Fremdwährungstransaktionen"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 254
+      },
+      {
+        "id": 39,
+        "code": "7845",
+        "source_name": "Cash Difference Loss",
+        "target_name": {
+          "base": "Cash Difference Loss",
+          "translations": {
+            "de_DE": "Bargelddifferenz (Verlust)"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 287
+      },
+      {
+        "id": 40,
+        "code": "8350",
+        "source_name": "Cash Discount Gain",
+        "target_name": {
+          "base": "Unused supplier cash discount",
+          "translations": {
+            "de_DE": "Nicht ausgenützte Lieferantenskonti"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 275
+      },
+      {
+        "id": 41,
+        "code": "7775",
+        "source_name": "RD Expenses",
+        "target_name": {
+          "base": "Development expenses",
+          "translations": {
+            "de_DE": "Entwicklungsaufwendungen"
+          }
+        },
+        "posted_lines": 0
+      },
+      {
+        "id": 42,
+        "code": "7970",
+        "source_name": "Sales Expenses",
+        "target_name": {
+          "base": "Selling expenses",
+          "translations": {
+            "de_DE": "Vertriebskosten"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 258
+      },
+      {
+        "id": 50,
+        "code": "9890",
+        "source_name": "Undistributed Profits/Losses",
+        "target_name": {
+          "base": "Profit and loss statement",
+          "translations": {
+            "de_DE": "Gewinn- und Verlustrechnung"
+          }
+        },
+        "posted_lines": 0,
+        "reference_account_id": 283
+      }
+    ]
+  },
+  "validation": {
+    "api_assertions": [
+      "company 1 name, partner data, and bank account match the identity section",
+      "currency 1 is renamed to EUR-style labels in base and de_DE reads",
+      "currency 126 is moved out of the way to XEUR-style labels in base and de_DE reads",
+      "tax groups 1 and 2 match the mapping spec in base and de_DE reads",
+      "taxes 1 to 4 match the mapping spec fields in base and de_DE reads",
+      "chart account labels match the mapping spec in base and de_DE reads",
+      "account IDs remain stable and posted moves stay posted",
+      "journal names match the mapping spec in base and de_DE reads"
+    ],
+    "ui_spot_checks": [
+      "accounting dashboard in German language",
+      "chart of accounts list in German language",
+      "taxes list in German language",
+      "customer invoice print preview in German language",
+      "vendor bill print preview in German language"
+    ]
+  },
+  "prompt_pack": {
+    "generation_source": "this_mapping_spec",
+    "chunk_order": [
+      "company_and_currency",
+      "tax_groups",
+      "taxes",
+      "chart_chunk_1",
+      "chart_chunk_2",
+      "chart_chunk_3",
+      "journals_and_bank",
+      "verification"
+    ]
+  },
+  "open_items": [
+    "Trusted partner bank accounts cannot have their account number changed in place. Cosmetic mode currently leaves immutable trusted bank fields untouched.",
+    "Run a live smoke test in codexvalidation once the cleaned operator contract is frozen."
+  ]
+}

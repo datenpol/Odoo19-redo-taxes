@@ -1,12 +1,59 @@
 from __future__ import annotations
 
+import builtins
+import importlib
+import json
+import sys
+import tempfile
 import unittest
+from dataclasses import asdict
 from pathlib import Path
+from typing import Any
+from unittest.mock import patch
 
+import yaml
+
+from odoo_demo_austria.models import ProjectSpec, SpecValidationError
 from odoo_demo_austria.spec_loader import load_spec
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_PATH = ROOT / "data" / "austria-cosmetic-mapping-spec.draft.yaml"
+_ORIGINAL_IMPORT = builtins.__import__
+
+
+def _raise_on_yaml_import(
+    name: str,
+    globals_dict: dict[str, Any] | None = None,
+    locals_dict: dict[str, Any] | None = None,
+    fromlist: tuple[Any, ...] = (),
+    level: int = 0,
+) -> Any:
+    if name == "yaml":
+        raise ModuleNotFoundError("No module named 'yaml'")
+    return _ORIGINAL_IMPORT(name, globals_dict, locals_dict, fromlist, level)
+
+
+def _normalized_spec(spec: ProjectSpec) -> dict[str, Any]:
+    payload = asdict(spec)
+    payload["spec_path"] = "<normalized>"
+    return payload
+
+
+def _write_json_spec_copy() -> Path:
+    raw_spec = yaml.safe_load(SPEC_PATH.read_text(encoding="utf-8"))
+    if raw_spec is None:
+        raise AssertionError("Expected canonical YAML spec to parse to data")
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        suffix=".json",
+        prefix="spec-loader-",
+        dir=ROOT / "data",
+        delete=False,
+    ) as handle:
+        json.dump(raw_spec, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+        return Path(handle.name)
 
 
 class SpecLoaderTests(unittest.TestCase):
@@ -50,6 +97,69 @@ class SpecLoaderTests(unittest.TestCase):
         self.assertEqual(sales.code, "4000")
         self.assertTrue(eu_position.create_if_missing)
         self.assertEqual(eu_position.target_tax_ids, (3, 4))
+
+    def test_yaml_and_json_load_to_equivalent_project_spec(self) -> None:
+        json_spec_path = _write_json_spec_copy()
+        try:
+            yaml_spec = load_spec(SPEC_PATH)
+            json_spec = load_spec(json_spec_path)
+        finally:
+            json_spec_path.unlink(missing_ok=True)
+
+        self.assertEqual(_normalized_spec(yaml_spec), _normalized_spec(json_spec))
+
+    def test_json_load_does_not_require_yaml_dependency(self) -> None:
+        module_name = "odoo_demo_austria.spec_loader"
+        json_spec_path = _write_json_spec_copy()
+        try:
+            sys.modules.pop(module_name, None)
+            with patch("builtins.__import__", new=_raise_on_yaml_import):
+                module = importlib.import_module(module_name)
+                spec = module.load_spec(json_spec_path)
+        finally:
+            json_spec_path.unlink(missing_ok=True)
+            sys.modules.pop(module_name, None)
+            importlib.import_module(module_name)
+
+        self.assertEqual(spec.localization.primary_display_language, "de_DE")
+        self.assertEqual(spec.identity.bank.source_acc_number, "BANK134567890")
+
+    def test_yaml_load_without_pyyaml_dependency_fails_clearly(self) -> None:
+        module_name = "odoo_demo_austria.spec_loader"
+        try:
+            sys.modules.pop(module_name, None)
+            with patch("builtins.__import__", new=_raise_on_yaml_import):
+                module = importlib.import_module(module_name)
+                with self.assertRaises(SpecValidationError) as context:
+                    module.load_spec(SPEC_PATH)
+        finally:
+            sys.modules.pop(module_name, None)
+            importlib.import_module(module_name)
+
+        self.assertIn("PyYAML", str(context.exception))
+        self.assertIn(".json", str(context.exception))
+
+    def test_unsupported_spec_extension_fails_with_supported_extensions_hint(self) -> None:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            suffix=".txt",
+            prefix="spec-loader-",
+            dir=ROOT / "data",
+            delete=False,
+        ) as handle:
+            handle.write("{}\n")
+            unsupported_path = Path(handle.name)
+        try:
+            with self.assertRaises(SpecValidationError) as context:
+                load_spec(unsupported_path)
+        finally:
+            unsupported_path.unlink(missing_ok=True)
+
+        message = str(context.exception)
+        self.assertIn(".txt", message)
+        self.assertIn(".json", message)
+        self.assertIn(".yaml", message)
 
 
 if __name__ == "__main__":

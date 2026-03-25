@@ -19,11 +19,11 @@ Completed:
 4. Cosmetic target resolution is dynamic for the runtime path.
 5. `doctor` is public and read-only.
 6. Report-aware runtime surfaces are removed from the operator contract.
+7. Repo wrapper assets exist for Codex and Claude Code.
+8. The operator runbook exists in `docs/operator-runbook.md`.
 
 Still pending:
 
-- Add the actual Codex and Claude skill assets.
-- Add the operator runbook.
 - Run the final live proof in `codexvalidation`.
 
 ## Operator UX
@@ -32,6 +32,12 @@ Current rollout invocation:
 
 ```text
 $datenpol-euro-demo URL API_KEY
+```
+
+Claude Code project invocation:
+
+```text
+/datenpol-euro-demo URL API_KEY
 ```
 
 Current rollout behavior:
@@ -49,8 +55,8 @@ $datenpol-euro-demo validate URL API_KEY
 ## Architecture
 
 - One shared Python core in this repo.
-- One Codex skill wrapper.
-- One Claude skill wrapper.
+- One Codex skill asset in `skills/codex/datenpol-euro-demo`.
+- One Claude Code project skill in `.claude/skills/datenpol-euro-demo`.
 - Skills stay thin and call the same Python engine.
 
 Do not put Odoo business logic into the skill instructions. Keep the logic in Python so the two skill implementations do not drift.
@@ -100,6 +106,13 @@ Advanced only:
 - It performs the same read-only preflight as `doctor` before any write.
 - It aborts before write if preflight fails.
 - This is the default path for both skill wrappers.
+
+## Operational Caveat
+
+- Odoo 19 JSON-2 commits each API call in its own transaction, not one global transaction for the whole run.
+- A failed `run` can therefore leave a partially applied cosmetic state.
+- The wrapper recovery path is deliberate: rerun the same `run` command once, then fall back to `doctor` and `validate` if the rerun still fails.
+- If stronger atomicity is ever required, that is not a wrapper tweak. It would require a server-side Odoo entry point that applies the full plan inside one Odoo transaction.
 
 ## Exit Codes
 

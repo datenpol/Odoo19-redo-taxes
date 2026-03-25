@@ -7,6 +7,12 @@
 - Build target: `codexplayground.odoo19.at`
 - Final proof target: `codexvalidation.odoo19.at`
 
+## Status note
+
+- Resolver hardening for translated target names and ASCII-vs-umlaut source names landed in commit `7989232`.
+- A green `codexsmoketest` run has been reported after that fix, but the raw command output is not checked into this repo.
+- Treat `codexvalidation` as the final proof target until that artifact exists.
+
 ## Working assumption for fixed demo identity
 
 - Demo company: `Datenpol Wohnatelier GmbH`
@@ -103,12 +109,12 @@ Completed:
 4. Replace fixed database ID assumptions in the runtime path with dynamic target resolution.
 5. Expose public read-only `doctor`.
 6. Remove `report-aware` runtime surfaces from the operator contract.
+7. Add the Codex and Claude wrapper assets in-repo.
+8. Add the operator runbook.
 
 Remaining:
 
-1. Add the actual Codex and Claude skill assets.
-2. Add the operator runbook.
-3. Run the final proof in `codexvalidation`.
+1. Run the final proof in `codexvalidation`.
 
 Why this order matters:
 
@@ -161,9 +167,16 @@ The engine should support machine-readable JSON output so both skill wrappers ca
 
 ## Deliverables
 
+Delivered in repo now:
+
 - mapping spec
 - one-click patcher
+- Codex skill asset
+- Claude Code skill asset
+- operator runbook
+- known-limits note through the contract docs and runbook
+
+Still backlog:
+
 - prompt pack with copy-paste blocks
-- sales runbook
-- validation checklist
-- known-limits note that makes clear what remains fake and cosmetic
+- formal validation checklist artifact

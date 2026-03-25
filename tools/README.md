@@ -39,6 +39,13 @@ $datenpol-euro-demo URL API_KEY
 
 The planned shared engine contract for the skill wrappers is documented in `docs/skill-wrapper-contract.md`.
 
+Operator guidance and wrapper installation notes live in `docs/operator-runbook.md`.
+
+Wrapper assets in this repo:
+
+- Codex: `skills/codex/datenpol-euro-demo`
+- Claude Code: `.claude/skills/datenpol-euro-demo`
+
 Notes:
 
 - The patcher reads the API key from `ODOO_API_KEY` by default.
@@ -47,6 +54,7 @@ Notes:
 - Dynamic target resolution now powers the runtime path, so `doctor`, `apply`, `validate`, and `run` all operate on the cleaned cosmetic contract.
 - `run` remains the default one-command surface for operators and future skill wrappers.
 - Report-aware runtime behavior is not part of the operator contract.
+- Odoo 19 `JSON-2` commits each API call separately. If a `run` fails after starting writes, rerun the same `run` command once before changing code or data.
 - Trusted partner bank accounts cannot have `acc_number` changed in place. The patcher detects that Odoo lock and skips immutable bank-account fields instead of failing the whole run.
 - On Odoo 19 `JSON-2`, `create` expects `vals_list`, not `vals`. The client already handles that quirk.
 

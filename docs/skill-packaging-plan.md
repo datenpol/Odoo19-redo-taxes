@@ -98,3 +98,5 @@ The packaging build should:
 This packaging model is planned and documented, but not yet implemented.
 
 Current repo-bound prompt assets must not be described as globally installable self-contained skills.
+
+See `docs/skill-implementation-checklist.md` for the concrete implementation worklist.

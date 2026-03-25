@@ -68,7 +68,7 @@ Claude artifact:
 - `data/spec.json`
 - `data/at-company-reference-values-2026-03-12.json`
 
-The runtime package should be copied wholesale from `src/odoo_demo_austria` instead of hand-selecting files.
+The runtime package should be copied from `src/odoo_demo_austria` as the source of truth, excluding cache artifacts (`__pycache__/`, `*.pyc`, `*.pyo`) instead of hand-selecting logic files.
 
 ## Build Responsibilities
 
@@ -79,11 +79,13 @@ The packaging build should:
 3. generate tool-specific metadata and instruction files for Codex and Claude
 4. ensure the packaged launcher resolves bundled files relative to its own `__file__`
 5. keep the packaged runtime stdlib-only where practical
+6. ensure generated runtime trees do not include cache artifacts
 
 ## Runtime Rules
 
 - installed artifacts must not import from repo-root `src/`
 - installed artifacts must not read from repo-root `data/`
+- generated launchers should be tested from outside the repository root to prove self-contained behavior
 - Codex packaging should disable implicit invocation for this write-capable skill
 - Claude packaging should remain explicit-only
 - packaged launchers should keep the public engine contract stable:

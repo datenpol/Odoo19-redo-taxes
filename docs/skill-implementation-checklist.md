@@ -71,6 +71,7 @@ Required behavior:
 - use stdlib `json` for `.json`
 - avoid a mandatory top-level `import yaml`
 - import `yaml` only when a YAML file is actually loaded
+- reject unsupported spec extensions with a clear `SpecValidationError` that names supported extensions
 
 Reason:
 
@@ -121,6 +122,7 @@ The launcher must never read from repo-root `src`, repo-root `data`, or `tools/`
 5. copy Codex and Claude templates into their respective outputs
 6. copy the reference snapshot JSON into both generated artifacts
 7. fail if required source files are missing
+8. exclude cache artifacts while copying runtime (`__pycache__/`, `*.pyc`, `*.pyo`)
 
 Keep the build simple. Do not serialize the dataclass model. Converting the YAML mapping to raw JSON is enough because the packaged runtime will still validate and parse it into `ProjectSpec`.
 
@@ -138,19 +140,28 @@ Claude template:
 - keep the command explicit
 - point to the bundled launcher, not repo `tools/`
 
-## Tests To Add
+## Tests To Add Or Extend
 
 Add:
 
-- `tests/test_spec_loader.py`
 - `tests/test_skill_packaging.py`
 - `tests/test_skill_launcher.py`
+
+Extend:
+
+- `tests/test_spec_loader.py`
 
 Test responsibilities:
 
 - YAML and JSON versions of the spec load to equivalent `ProjectSpec` values
+- JSON spec loading succeeds even when `yaml` is unavailable in the runtime environment
+- YAML spec loading still works when `PyYAML` is available
+- YAML loading without `PyYAML` fails with a clear dependency error
+- unsupported spec extension fails with a clear validation error
 - the build script produces the expected artifact layout
+- the build script excludes cache artifacts in generated runtime trees
 - the generated launcher imports cleanly without `PyYAML`
+- the generated launcher remains self-contained when invoked from outside the repository root
 - the generated launcher handles invalid arguments cleanly
 
 ## Migration And Cleanup
@@ -173,6 +184,7 @@ After generation is in place:
 5. Generate `.agents/skills/...` and `.claude/skills/...`.
 6. Add packaging and launcher tests.
 7. Remove or deprecate the old repo-bound Codex prototype path.
+8. Clean up stale docs that still describe packaging as only planned once generation is implemented.
 
 ## Definition Of Done
 

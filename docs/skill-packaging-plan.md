@@ -37,16 +37,16 @@ The installed skill must resolve all runtime files from its own folder and must 
 
 Codex:
 
-- generated repo path: `.agents/skills/datenpol-euro-demo`
+- generated repo path: `skills/datenpol-euro-demo`
 - intended use:
-  - repo-local Codex skill when opening this repository
-  - globally installable Codex skill when installed from the generated GitHub path via `$skill-installer`
+  - the one public Codex install boundary in this repository
+  - globally installable Codex skill when installed from GitHub via `$skill-installer`
 
 Claude:
 
-- generated repo path: `.claude/skills/datenpol-euro-demo`
+- generated repo path: `dist/claude/datenpol-euro-demo`
 - intended use:
-  - project-local Claude skill when opening this repository
+  - generated copy artifact only
   - personal/global Claude skill when the generated folder is copied to `~/.claude/skills/datenpol-euro-demo`
 
 ## Target Artifact Contents
@@ -106,6 +106,6 @@ Build entry point:
 Source vs output:
 
 - editable source: `skill_src/datenpol-euro-demo`
-- generated outputs: `.agents/skills/datenpol-euro-demo` and `.claude/skills/datenpol-euro-demo`
+- generated outputs: `skills/datenpol-euro-demo` and `dist/claude/datenpol-euro-demo`
 
 See `docs/skill-implementation-checklist.md` for the staged worklist and validation gates.

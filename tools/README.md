@@ -44,8 +44,8 @@ Operator guidance and wrapper installation notes live in `docs/operator-runbook.
 Skill packaging paths in this repo:
 
 - Source templates: `skill_src/datenpol-euro-demo`
-- Generated Codex artifact: `.agents/skills/datenpol-euro-demo`
-- Generated Claude artifact: `.claude/skills/datenpol-euro-demo`
+- Public Codex install boundary: `skills/datenpol-euro-demo`
+- Generated Claude artifact: `dist/claude/datenpol-euro-demo`
 
 Generate artifacts:
 
@@ -60,6 +60,7 @@ Notes:
 - The intended product direction is now cosmetic-only for staff-facing operation.
 - Dynamic target resolution now powers the runtime path, so `doctor`, `apply`, `validate`, and `run` all operate on the cleaned cosmetic contract.
 - `run` remains the default one-command surface for operators and future skill wrappers.
+- The Codex distribution policy is global-only. Do not rely on repo-local `.agents/skills` auto-discovery for this skill.
 - Report-aware runtime behavior is not part of the operator contract.
 - Odoo 19 `JSON-2` commits each API call separately. If a `run` fails after starting writes, rerun the same `run` command once before changing code or data.
 - Trusted partner bank accounts cannot have `acc_number` changed in place. The patcher detects that Odoo lock and skips immutable bank-account fields instead of failing the whole run.

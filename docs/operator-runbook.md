@@ -24,7 +24,8 @@ python tools/build_datenpol_euro_demo_skill.py
 Rules:
 
 - treat `skill_src/datenpol-euro-demo` as source
-- treat `.agents/skills/datenpol-euro-demo` and `.claude/skills/datenpol-euro-demo` as generated outputs
+- treat `skills/datenpol-euro-demo` as the public global Codex install boundary
+- treat `dist/claude/datenpol-euro-demo` as the generated Claude copy artifact
 - rerun the build script after changing runtime or skill templates
 
 ## Current Manual Operator Path
@@ -64,15 +65,15 @@ python tools/odoo_demo_austria.py run --format json --base-url "<URL>"
 
 Codex generated skill artifact:
 
-- target repo path: `.agents/skills/datenpol-euro-demo`
-- install model: use as a repo-local Codex skill, or install from the generated GitHub repo path with `$skill-installer`
+- target repo path: `skills/datenpol-euro-demo`
+- install model: global Codex skill installed from GitHub with `$skill-installer`
 - packaging rule: the generated artifact must be self-contained and must not depend on repo-root `src/` or `data/`
 - operator invocation: `$datenpol-euro-demo URL API_KEY`
 
 Claude generated skill artifact:
 
-- target repo path: `.claude/skills/datenpol-euro-demo`
-- availability: project-local when Claude Code is opened in this repository, or personal/global when the generated folder is copied to `~/.claude/skills/datenpol-euro-demo`
+- target repo path: `dist/claude/datenpol-euro-demo`
+- availability: manual copy artifact for `~/.claude/skills/datenpol-euro-demo`
 - packaging rule: the generated artifact must be self-contained and must not depend on repo-root `src/` or `data/`
 - operator invocation: `/datenpol-euro-demo URL API_KEY`
 

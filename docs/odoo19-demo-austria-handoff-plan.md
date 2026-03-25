@@ -82,7 +82,7 @@ The mapping spec covers:
    - chart of accounts names and Austrian 4-digit codes so `San Francisco` looks like Austrian seed data
    - bank and account display details
 5. Expose the cosmetic engine through generated self-contained skill artifacts:
-   - Codex skill artifact
+   - global Codex skill artifact
    - Claude skill artifact
    - no GUI
    - Python install acceptable for operator machines

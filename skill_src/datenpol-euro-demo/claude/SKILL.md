@@ -7,23 +7,29 @@ disable-model-invocation: true
 
 Run the bundled launcher from this skill folder and keep all business logic in the packaged runtime.
 
+Interpreter preference:
+
+- on Windows, prefer `py -3`
+- on macOS or Linux, prefer `python3`
+- fall back to `python` only if the preferred launcher is unavailable
+
 Default operator path:
 
 ```powershell
-python scripts/datenpol_euro_demo.py "$0" "$1"
+py -3 scripts/datenpol_euro_demo.py "$0" "$1"
 ```
 
 Read-only diagnosis:
 
 ```powershell
-python scripts/datenpol_euro_demo.py doctor "$0" "$1"
-python scripts/datenpol_euro_demo.py validate "$0" "$1"
+py -3 scripts/datenpol_euro_demo.py doctor "$0" "$1"
+py -3 scripts/datenpol_euro_demo.py validate "$0" "$1"
 ```
 
 Apply only:
 
 ```powershell
-python scripts/datenpol_euro_demo.py apply "$0" "$1"
+py -3 scripts/datenpol_euro_demo.py apply "$0" "$1"
 ```
 
 Guardrails:

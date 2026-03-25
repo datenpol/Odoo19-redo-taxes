@@ -59,8 +59,8 @@ $datenpol-euro-demo validate URL API_KEY
 
 - One shared Python source tree in `src/odoo_demo_austria`.
 - One canonical mapping spec in `data/austria-cosmetic-mapping-spec.draft.yaml`.
-- One generated Codex skill artifact in `.agents/skills/datenpol-euro-demo`.
-- One generated Claude skill artifact in `.claude/skills/datenpol-euro-demo`.
+- One public generated Codex skill artifact in `skills/datenpol-euro-demo`.
+- One generated Claude copy artifact in `dist/claude/datenpol-euro-demo`.
 - Generated artifacts bundle the runtime code and spec data they need at runtime.
 - Installed artifacts must not depend on repo-root `src/` or `data`.
 - The source tree drives the build; operator machines should not need this repo checkout after install.

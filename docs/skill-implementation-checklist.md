@@ -19,7 +19,7 @@ Keep these as the only source of truth:
 - `data/austria-cosmetic-mapping-spec.draft.yaml`
 - `data/at-company-reference-values-2026-03-12.json`
 
-Do not make `.agents/skills` or `.claude/skills` the editable source of truth.
+Do not make generated `skills/` or `dist/` artifacts the editable source of truth.
 
 ## New Source Files To Add
 
@@ -42,8 +42,8 @@ Responsibilities:
 
 Generate and commit:
 
-- `.agents/skills/datenpol-euro-demo`
-- `.claude/skills/datenpol-euro-demo`
+- `skills/datenpol-euro-demo`
+- `dist/claude/datenpol-euro-demo`
 
 Each generated artifact should contain:
 
@@ -172,7 +172,7 @@ After the generated Codex artifact exists:
 
 After generation is in place:
 
-- stop treating `.claude/skills/datenpol-euro-demo` as hand-edited source
+- stop treating `dist/claude/datenpol-euro-demo` as hand-edited source
 - treat both generated skill folders as build outputs
 
 ## Minimum Safe Delivery Order
@@ -181,7 +181,7 @@ After generation is in place:
 2. Add YAML/JSON parity tests.
 3. Add the `skill_src/` templates and shared launcher source.
 4. Add the build script.
-5. Generate `.agents/skills/...` and `.claude/skills/...`.
+5. Generate `skills/...` and `dist/claude/...`.
 6. Add packaging and launcher tests.
 7. Remove or deprecate the old repo-bound Codex prototype path.
 8. Clean up stale docs that still describe packaging as only planned once generation is implemented.

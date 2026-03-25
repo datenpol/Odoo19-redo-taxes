@@ -13,8 +13,12 @@ BUILD_SCRIPT = ROOT / "tools" / "build_datenpol_euro_demo_skill.py"
 SPEC_SOURCE = ROOT / "data" / "austria-cosmetic-mapping-spec.draft.yaml"
 REFERENCE_SOURCE = ROOT / "data" / "at-company-reference-values-2026-03-12.json"
 
-CODEX_ARTIFACT = ROOT / ".agents" / "skills" / "datenpol-euro-demo"
-CLAUDE_ARTIFACT = ROOT / ".claude" / "skills" / "datenpol-euro-demo"
+CODEX_ARTIFACT = ROOT / "skills" / "datenpol-euro-demo"
+CLAUDE_ARTIFACT = ROOT / "dist" / "claude" / "datenpol-euro-demo"
+LEGACY_ARTIFACTS = (
+    ROOT / ".agents" / "skills" / "datenpol-euro-demo",
+    ROOT / ".claude" / "skills" / "datenpol-euro-demo",
+)
 
 
 def _build_artifacts() -> None:
@@ -79,6 +83,10 @@ class SkillPackagingTests(unittest.TestCase):
             self.assertFalse(list(runtime_root.rglob("__pycache__")))
             self.assertFalse(list(runtime_root.rglob("*.pyc")))
             self.assertFalse(list(runtime_root.rglob("*.pyo")))
+
+    def test_build_removes_legacy_repo_local_skill_outputs(self) -> None:
+        for artifact in LEGACY_ARTIFACTS:
+            self.assertFalse(artifact.exists(), f"Legacy artifact should be absent: {artifact}")
 
 
 if __name__ == "__main__":

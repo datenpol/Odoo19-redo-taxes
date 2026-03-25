@@ -13,9 +13,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD_SCRIPT = ROOT / "tools" / "build_datenpol_euro_demo_skill.py"
-CODEX_LAUNCHER = (
-    ROOT / ".agents" / "skills" / "datenpol-euro-demo" / "scripts" / "datenpol_euro_demo.py"
-)
+CODEX_LAUNCHER = ROOT / "skills" / "datenpol-euro-demo" / "scripts" / "datenpol_euro_demo.py"
 _ORIGINAL_IMPORT = builtins.__import__
 
 

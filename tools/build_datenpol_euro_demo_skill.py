@@ -13,14 +13,20 @@ RUNTIME_SOURCE = REPO_ROOT / "src" / "odoo_demo_austria"
 SPEC_SOURCE = REPO_ROOT / "data" / "austria-cosmetic-mapping-spec.draft.yaml"
 REFERENCE_SOURCE = REPO_ROOT / "data" / "at-company-reference-values-2026-03-12.json"
 
-CODEX_OUTPUT = REPO_ROOT / ".agents" / "skills" / "datenpol-euro-demo"
-CLAUDE_OUTPUT = REPO_ROOT / ".claude" / "skills" / "datenpol-euro-demo"
+CODEX_OUTPUT = REPO_ROOT / "skills" / "datenpol-euro-demo"
+CLAUDE_OUTPUT = REPO_ROOT / "dist" / "claude" / "datenpol-euro-demo"
+
+LEGACY_OUTPUTS = (
+    REPO_ROOT / ".agents" / "skills" / "datenpol-euro-demo",
+    REPO_ROOT / ".claude" / "skills" / "datenpol-euro-demo",
+)
 
 _CACHE_PATTERNS = ("__pycache__", "*.pyc", "*.pyo")
 
 
 def build_datenpol_euro_demo_skill() -> None:
     _assert_required_sources()
+    _remove_legacy_outputs()
     _recreate_directory(CODEX_OUTPUT)
     _recreate_directory(CLAUDE_OUTPUT)
     raw_spec = _load_raw_spec_mapping()
@@ -42,6 +48,12 @@ def _assert_required_sources() -> None:
     if missing:
         missing_list = "\n".join(f"- {path}" for path in missing)
         raise FileNotFoundError(f"Skill packaging sources are missing:\n{missing_list}")
+
+
+def _remove_legacy_outputs() -> None:
+    for path in LEGACY_OUTPUTS:
+        if path.exists():
+            shutil.rmtree(path)
 
 
 def _recreate_directory(path: Path) -> None:

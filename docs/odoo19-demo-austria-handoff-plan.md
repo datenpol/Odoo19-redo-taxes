@@ -25,8 +25,8 @@ Keep one single source of truth for all cosmetic mappings. That mapping spec dri
 
 - API patcher behavior
 - shared Python core engine behavior
-- Codex skill wrapper behavior
-- Claude skill wrapper behavior
+- Codex skill artifact behavior
+- Claude skill artifact behavior
 - human prompt pack for Odoo AI
 - documentation and validation checklist
 
@@ -34,7 +34,7 @@ The operator-facing workflow must stay as close to one command as possible. The 
 
 - `$datenpol-euro-demo URL API_KEY`
 
-Skills are thin wrappers. Business logic stays in the shared Python core so Codex and Claude do not drift.
+The packaged Codex and Claude skills should be generated self-contained artifacts. Business logic stays in the shared Python core so Codex and Claude do not drift.
 
 ## Engineering guardrails
 
@@ -81,9 +81,9 @@ The mapping spec covers:
    - tax names, tax group labels, and descriptions
    - chart of accounts names and Austrian 4-digit codes so `San Francisco` looks like Austrian seed data
    - bank and account display details
-5. Expose the cosmetic engine through thin skill wrappers:
-   - Codex skill wrapper
-   - Claude skill wrapper
+5. Expose the cosmetic engine through generated self-contained skill artifacts:
+   - Codex skill artifact
+   - Claude skill artifact
    - no GUI
    - Python install acceptable for operator machines
 6. Generate the prompt pack from the same mapping spec, in chunks:
@@ -105,16 +105,17 @@ Completed:
 
 1. Fix wrapper/bootstrap behavior and make the local wrapper dependable.
 2. Freeze one machine-readable JSON schema plus stable exit codes.
-3. Add public `run` so operators and future skill wrappers can use one command immediately.
+3. Add public `run` so operators and future packaged skills can use one command immediately.
 4. Replace fixed database ID assumptions in the runtime path with dynamic target resolution.
 5. Expose public read-only `doctor`.
 6. Remove `report-aware` runtime surfaces from the operator contract.
-7. Add the Codex and Claude wrapper assets in-repo.
+7. Add the initial Codex and Claude prompt assets in-repo.
 8. Add the operator runbook.
 
 Remaining:
 
-1. Run the final proof in `codexvalidation`.
+1. Replace the repo-bound prompt assets with generated self-contained Codex and Claude skill artifacts.
+2. Run the final proof in `codexvalidation`.
 
 Why this order matters:
 
@@ -124,7 +125,7 @@ Why this order matters:
 
 Temporary rule during the rollout:
 
-- Skill wrappers must target only the public cosmetic contract.
+- Packaged skill artifacts must target only the public cosmetic contract.
 
 ## Target Engine Contract
 
@@ -148,14 +149,14 @@ Normal operator flow for skills:
 - cosmetic only
 - arguments: `URL API_KEY`
 
-Skill wrappers should:
+Generated skill launchers should:
 
 - parse `URL` and `API_KEY`
 - pass the API key through the environment
 - call the Python engine
 - show concise success or blocker summaries
 
-The engine should support machine-readable JSON output so both skill wrappers can consume the same result contract.
+The engine should support machine-readable JSON output so both generated skill launchers can consume the same result contract.
 
 ## Validation method
 
@@ -163,7 +164,7 @@ The engine should support machine-readable JSON output so both skill wrappers ca
 - Safety assertions: no posted moves deleted, no destructive operations, rerun stays stable.
 - UI spot checks: accounting dashboard, chart of accounts, taxes, customer invoice, and vendor bill.
 - Prompt pack test: run the fallback flow on a fresh environment and compare the visible result against the patcher outcome.
-- Live contract proof: run the cleaned cosmetic engine in `codexvalidation` before freezing the skill assets.
+- Live contract proof: run the cleaned cosmetic engine in `codexvalidation` before freezing the generated skill artifacts.
 
 ## Deliverables
 
@@ -171,8 +172,8 @@ Delivered in repo now:
 
 - mapping spec
 - one-click patcher
-- Codex skill asset
-- Claude Code skill asset
+- initial Codex prompt asset
+- initial Claude Code prompt asset
 - operator runbook
 - known-limits note through the contract docs and runbook
 

@@ -11,29 +11,27 @@ This means:
 - do not attempt real accounting migration
 - do not use any removed `report-aware` runtime path
 
-## Prerequisites
+## Packaging Status
+
+The self-contained Codex and Claude skill artifacts described in this document are the target packaging model, not the current implementation status of this repo.
+
+Current reality:
+
+- the authoritative operator path today is still the manual repo command path below
+- do not document or install the current repo-bound Codex prompt asset as a global skill
+- the future packaged skill should install and run without requiring this repo checkout on the target machine
+
+See `docs/skill-packaging-plan.md` for the source-of-truth and build model behind the future generated skill artifacts.
+
+## Current Manual Operator Path
+
+Prerequisites for the current manual path:
 
 - Python 3.11 or newer
 - a checkout of this repository
 - an Odoo 19 instance with JSON-2 API access
 - an API key with enough rights to read and write the targeted accounting records
 - optional: database name if the domain hosts multiple Odoo databases
-
-## Wrapper Assets
-
-Codex skill asset:
-
-- repo path: `skills/codex/datenpol-euro-demo`
-- install target: copy or symlink to `$CODEX_HOME/skills/datenpol-euro-demo`
-- operator invocation: `$datenpol-euro-demo URL API_KEY`
-
-Claude Code project skill:
-
-- repo path: `.claude/skills/datenpol-euro-demo/SKILL.md`
-- availability: project-local when Claude Code is opened in this repository
-- operator invocation: `/datenpol-euro-demo URL API_KEY`
-
-## Manual Commands
 
 Default operator path:
 
@@ -57,6 +55,22 @@ $env:ODOO_API_KEY = "<API_KEY>"
 $env:ODOO_DB = "<DBNAME>"
 python tools/odoo_demo_austria.py run --format json --base-url "<URL>"
 ```
+
+## Planned Skill Artifacts
+
+Codex generated skill artifact:
+
+- target repo path: `.agents/skills/datenpol-euro-demo`
+- install model: use as a repo-local Codex skill, or install from the generated GitHub repo path with `$skill-installer`
+- packaging rule: the generated artifact must be self-contained and must not depend on repo-root `src/` or `data/`
+- operator invocation: `$datenpol-euro-demo URL API_KEY`
+
+Claude generated skill artifact:
+
+- target repo path: `.claude/skills/datenpol-euro-demo`
+- availability: project-local when Claude Code is opened in this repository, or personal/global when the generated folder is copied to `~/.claude/skills/datenpol-euro-demo`
+- packaging rule: the generated artifact must be self-contained and must not depend on repo-root `src/` or `data/`
+- operator invocation: `/datenpol-euro-demo URL API_KEY`
 
 ## Expected Exit Codes
 

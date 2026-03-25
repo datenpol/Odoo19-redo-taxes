@@ -1,4 +1,4 @@
-# Skill Wrapper Contract
+# Skill Packaging Contract
 
 ## Scope
 
@@ -6,6 +6,7 @@
 - No `report-aware` path.
 - No GUI.
 - Python installation on operator machines is acceptable.
+- This document describes the target contract for generated self-contained Codex and Claude skill artifacts.
 
 ## Rollout Status
 
@@ -19,16 +20,17 @@ Completed:
 4. Cosmetic target resolution is dynamic for the runtime path.
 5. `doctor` is public and read-only.
 6. Report-aware runtime surfaces are removed from the operator contract.
-7. Repo wrapper assets exist for Codex and Claude Code.
+7. Initial repo-bound prompt assets exist for Codex and Claude Code.
 8. The operator runbook exists in `docs/operator-runbook.md`.
 
 Still pending:
 
+- Replace the repo-bound prompt assets with generated self-contained skill artifacts for Codex and Claude.
 - Run the final live proof in `codexvalidation`.
 
 ## Operator UX
 
-Current rollout invocation:
+Current target invocation:
 
 ```text
 $datenpol-euro-demo URL API_KEY
@@ -40,10 +42,10 @@ Claude Code project invocation:
 /datenpol-euro-demo URL API_KEY
 ```
 
-Current rollout behavior:
+Current target behavior:
 
-- The wrapper calls `run`.
-- The wrapper assumes cosmetic-only operation.
+- the skill launcher calls `run`
+- the skill launcher assumes cosmetic-only operation
 
 Optional support commands for consultants:
 
@@ -54,12 +56,25 @@ $datenpol-euro-demo validate URL API_KEY
 
 ## Architecture
 
-- One shared Python core in this repo.
-- One Codex skill asset in `skills/codex/datenpol-euro-demo`.
-- One Claude Code project skill in `.claude/skills/datenpol-euro-demo`.
-- Skills stay thin and call the same Python engine.
+- One shared Python source tree in `src/odoo_demo_austria`.
+- One canonical mapping spec in `data/austria-cosmetic-mapping-spec.draft.yaml`.
+- One generated Codex skill artifact in `.agents/skills/datenpol-euro-demo`.
+- One generated Claude skill artifact in `.claude/skills/datenpol-euro-demo`.
+- Generated artifacts bundle the runtime code and spec data they need at runtime.
+- Installed artifacts must not depend on repo-root `src/` or `data`.
+- The source tree drives the build; operator machines should not need this repo checkout after install.
 
 Do not put Odoo business logic into the skill instructions. Keep the logic in Python so the two skill implementations do not drift.
+
+## Packaging Flow
+
+Target flow:
+
+```text
+src + data -> build/package step -> generated self-contained skill artifacts -> install/use
+```
+
+The build step should generate tool-specific `SKILL.md` files and metadata while keeping the public runtime contract identical.
 
 ## Engine Commands
 
@@ -74,9 +89,9 @@ odoo-demo-austria run --base-url URL [--format text|json]
 
 Authentication:
 
-- Skill receives `API_KEY`.
-- Skill passes the key through `ODOO_API_KEY`.
-- Engine reads the key from the environment by default.
+- skill receives `API_KEY`
+- skill passes the key through `ODOO_API_KEY`
+- engine reads the key from the environment by default
 
 Advanced only:
 
@@ -105,14 +120,14 @@ Advanced only:
 - It is the default one-command operator path.
 - It performs the same read-only preflight as `doctor` before any write.
 - It aborts before write if preflight fails.
-- This is the default path for both skill wrappers.
+- This is the default path for both generated skill launchers.
 
 ## Operational Caveat
 
 - Odoo 19 JSON-2 commits each API call in its own transaction, not one global transaction for the whole run.
 - A failed `run` can therefore leave a partially applied cosmetic state.
-- The wrapper recovery path is deliberate: rerun the same `run` command once, then fall back to `doctor` and `validate` if the rerun still fails.
-- If stronger atomicity is ever required, that is not a wrapper tweak. It would require a server-side Odoo entry point that applies the full plan inside one Odoo transaction.
+- The skill recovery path is deliberate: rerun the same `run` command once, then fall back to `doctor` and `validate` if the rerun still fails.
+- If stronger atomicity is ever required, that is not a skill-packaging tweak. It would require a server-side Odoo entry point that applies the full plan inside one Odoo transaction.
 
 ## Exit Codes
 
@@ -132,9 +147,9 @@ The engine should support:
 --format json
 ```
 
-Both skill wrappers should consume the same machine-readable JSON contract.
+Both generated skill launchers should consume the same machine-readable JSON contract.
 
-JSON output is the authoritative wrapper contract. Text output is only for human operators.
+JSON output is the authoritative launcher contract. Text output is only for human operators.
 
 Expected top-level fields:
 

@@ -128,6 +128,12 @@ class JournalSpec:
 
 
 @dataclass(frozen=True)
+class FiscalPositionAccountMappingSpec:
+    source_account_id: int
+    replacement_account_id: int
+
+
+@dataclass(frozen=True)
 class FiscalPositionSpec:
     record_id: int | None
     source_name: str | None
@@ -140,15 +146,20 @@ class FiscalPositionSpec:
     vat_required: bool
     foreign_vat: str | None
     target_tax_ids: tuple[int, ...]
+    account_mappings: tuple[FiscalPositionAccountMappingSpec, ...]
 
 
 @dataclass(frozen=True)
 class AccountSpec:
     record_id: int
+    create_if_missing: bool
     code: str
-    source_name: str
+    source_name: str | None
     target_name: TranslatedText
     posted_lines: int
+    account_type: str | None
+    reconcile: bool
+    reference_account_id: int | None
 
 
 @dataclass(frozen=True)
@@ -223,7 +234,7 @@ class ResolvedFiscalPosition:
 @dataclass(frozen=True)
 class ResolvedAccount:
     spec: AccountSpec
-    record_id: int
+    record_id: int | None
 
 
 @dataclass(frozen=True)

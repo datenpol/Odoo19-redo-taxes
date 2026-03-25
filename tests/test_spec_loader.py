@@ -65,7 +65,7 @@ class SpecLoaderTests(unittest.TestCase):
         self.assertEqual(len(spec.taxes), 4)
         self.assertEqual(len(spec.journals), 13)
         self.assertEqual(len(spec.fiscal_positions), 4)
-        self.assertEqual(len(spec.chart.explicit_accounts), 53)
+        self.assertEqual(len(spec.chart.explicit_accounts), 64)
 
     def test_loads_german_tax_description_translation(self) -> None:
         spec = load_spec(SPEC_PATH)
@@ -91,12 +91,17 @@ class SpecLoaderTests(unittest.TestCase):
     def test_loads_austrian_account_codes_and_fiscal_positions(self) -> None:
         spec = load_spec(SPEC_PATH)
         sales = next(item for item in spec.chart.explicit_accounts if item.record_id == 26)
+        revenue_10 = next(item for item in spec.chart.explicit_accounts if item.record_id == 51)
         eu_position = next(
             item for item in spec.fiscal_positions if item.target_name.base == "Europäische Union"
         )
         self.assertEqual(sales.code, "4000")
+        self.assertEqual(revenue_10.code, "4010")
+        self.assertTrue(revenue_10.create_if_missing)
+        self.assertEqual(revenue_10.account_type, "income")
         self.assertTrue(eu_position.create_if_missing)
         self.assertEqual(eu_position.target_tax_ids, (3, 4))
+        self.assertEqual(len(eu_position.account_mappings), 5)
 
     def test_yaml_and_json_load_to_equivalent_project_spec(self) -> None:
         json_spec_path = _write_json_spec_copy()

@@ -3,7 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from ._spec_support import (
+    optional_int,
+    optional_str,
     parse_translated_text,
+    require_bool,
     require_int,
     require_list,
     require_mapping,
@@ -52,11 +55,15 @@ def parse_accounts(chart: dict[str, Any]) -> tuple[AccountSpec, ...]:
                     item.get("id"),
                     f"chart.explicit_accounts[{index}].id",
                 ),
+                create_if_missing=require_bool(
+                    item.get("create_if_missing", False),
+                    f"chart.explicit_accounts[{index}].create_if_missing",
+                ),
                 code=require_str(
                     item.get("code"),
                     f"chart.explicit_accounts[{index}].code",
                 ),
-                source_name=require_str(
+                source_name=optional_str(
                     item.get("source_name"),
                     f"chart.explicit_accounts[{index}].source_name",
                 ),
@@ -67,6 +74,18 @@ def parse_accounts(chart: dict[str, Any]) -> tuple[AccountSpec, ...]:
                 posted_lines=require_int(
                     item.get("posted_lines"),
                     f"chart.explicit_accounts[{index}].posted_lines",
+                ),
+                account_type=optional_str(
+                    item.get("account_type"),
+                    f"chart.explicit_accounts[{index}].account_type",
+                ),
+                reconcile=require_bool(
+                    item.get("reconcile", False),
+                    f"chart.explicit_accounts[{index}].reconcile",
+                ),
+                reference_account_id=optional_int(
+                    item.get("reference_account_id"),
+                    f"chart.explicit_accounts[{index}].reference_account_id",
                 ),
             )
         )

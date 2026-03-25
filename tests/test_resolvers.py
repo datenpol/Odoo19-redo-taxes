@@ -138,12 +138,22 @@ class FakeResolverClient:
         return [{"id": spec.record_id + 2_000, "name": name}]
 
     def _account_records(self, domain: list[Any]) -> list[dict[str, Any]]:
-        names = self._domain_value(domain, "name")
-        matches = [
-            item
-            for item in self.spec.chart.explicit_accounts
-            if item.source_name in names or item.target_name.base in names
-        ]
+        code = self._optional_domain_value(domain, "code")
+        if code is not None:
+            matches = [
+                item for item in self.spec.chart.explicit_accounts if item.code == code
+            ]
+        else:
+            names = self._domain_value(domain, "name")
+            matches = [
+                item
+                for item in self.spec.chart.explicit_accounts
+                if item.source_name in names
+                or item.target_name.base in names
+                or item.target_name.value_for("de_DE") in names
+            ]
+        if not self.use_target_names:
+            matches = [item for item in matches if not item.create_if_missing]
         return [
             {
                 "id": item.record_id + 3_000,
@@ -203,6 +213,12 @@ class FakeResolverClient:
                 return value
         raise AssertionError(f"Missing domain field {field_name}")
 
+    def _optional_domain_value(self, domain: list[Any], field_name: str) -> Any | None:
+        for field, _operator, value in domain:
+            if field == field_name:
+                return value
+        return None
+
     def _name(self, source_name: str | None, target_name: str) -> str:
         if self.use_target_names or source_name is None:
             return target_name
@@ -231,6 +247,8 @@ class ResolverTests(unittest.TestCase):
         self.assertEqual(resolved.tax_groups[0].record_id, 5_001)
         self.assertEqual(resolved.journals[0].record_id, 1_001)
         self.assertEqual(resolved.accounts[0].record_id, 3_001)
+        revenue_10 = next(item for item in resolved.accounts if item.spec.code == "4010")
+        self.assertIsNone(revenue_10.record_id)
         self.assertIsNone(resolved.fiscal_positions[2].record_id)
 
     def test_resolves_target_state_after_cosmetic_rename(self) -> None:
@@ -242,7 +260,8 @@ class ResolverTests(unittest.TestCase):
         self.assertEqual(resolved.displaced_reference_currency.record_id, 126)
         self.assertEqual(resolved.taxes[1].record_id, 102)
         self.assertEqual(resolved.journals[-1].record_id, 1_021)
-        self.assertEqual(resolved.accounts[-1].record_id, 3_050)
+        purchased_0 = next(item for item in resolved.accounts if item.spec.code == "5200")
+        self.assertEqual(purchased_0.record_id, 3_061)
         self.assertIsNone(resolved.fiscal_positions[3].record_id)
 
     def test_resolves_translated_target_state_after_cosmetic_rename(self) -> None:
@@ -259,7 +278,8 @@ class ResolverTests(unittest.TestCase):
 
         self.assertEqual(resolved.taxes[1].record_id, 102)
         self.assertEqual(resolved.journals[-1].record_id, 1_021)
-        self.assertEqual(resolved.accounts[-1].record_id, 3_050)
+        revenue_10 = next(item for item in resolved.accounts if item.spec.code == "4010")
+        self.assertEqual(revenue_10.record_id, 3_051)
 
     def test_resolves_ascii_spec_names_against_umlaut_source_records(self) -> None:
         spec = load_spec(SPEC_PATH)

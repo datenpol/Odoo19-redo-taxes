@@ -445,6 +445,28 @@
       "target_tax_ids": [
         3,
         4
+      ],
+      "account_mappings": [
+        {
+          "source_account_id": 26,
+          "replacement_account_id": 54
+        },
+        {
+          "source_account_id": 51,
+          "replacement_account_id": 55
+        },
+        {
+          "source_account_id": 5,
+          "replacement_account_id": 52
+        },
+        {
+          "source_account_id": 57,
+          "replacement_account_id": 59
+        },
+        {
+          "source_account_id": 58,
+          "replacement_account_id": 60
+        }
       ]
     },
     {
@@ -465,6 +487,24 @@
       "target_tax_ids": [
         3,
         4
+      ],
+      "account_mappings": [
+        {
+          "source_account_id": 26,
+          "replacement_account_id": 56
+        },
+        {
+          "source_account_id": 5,
+          "replacement_account_id": 53
+        },
+        {
+          "source_account_id": 57,
+          "replacement_account_id": 61
+        },
+        {
+          "source_account_id": 58,
+          "replacement_account_id": 61
+        }
       ]
     }
   ],
@@ -1155,6 +1195,182 @@
         },
         "posted_lines": 0,
         "reference_account_id": 283
+      },
+      {
+        "id": 51,
+        "create_if_missing": true,
+        "code": "4010",
+        "source_name": null,
+        "target_name": {
+          "base": "Revenue 10%",
+          "translations": {
+            "de_DE": "Brutto-Umsatzerlöse im Inland (10%)"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "income",
+        "reconcile": false,
+        "reference_account_id": 203
+      },
+      {
+        "id": 52,
+        "create_if_missing": true,
+        "code": "2010",
+        "source_name": null,
+        "target_name": {
+          "base": "Trade receivables, EU area",
+          "translations": {
+            "de_DE": "Forderungen aus Lieferungen und Leistungen EU-Raum"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "asset_receivable",
+        "reconcile": true,
+        "reference_account_id": 134
+      },
+      {
+        "id": 53,
+        "create_if_missing": true,
+        "code": "2020",
+        "source_name": null,
+        "target_name": {
+          "base": "Trade receivables, international",
+          "translations": {
+            "de_DE": "Forderungen aus Lieferungen und Leistungen sonstiges Ausland"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "asset_receivable",
+        "reconcile": true,
+        "reference_account_id": 137
+      },
+      {
+        "id": 54,
+        "create_if_missing": true,
+        "code": "4100",
+        "source_name": null,
+        "target_name": {
+          "base": "Revenue euro-zone RC 20%",
+          "translations": {
+            "de_DE": "Brutto-Umsatzerlöse im EU-Raum (RC 20%)"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "income",
+        "reconcile": false,
+        "reference_account_id": 204
+      },
+      {
+        "id": 55,
+        "create_if_missing": true,
+        "code": "4110",
+        "source_name": null,
+        "target_name": {
+          "base": "Revenue euro-zone RC 10%",
+          "translations": {
+            "de_DE": "Brutto-Umsatzerlöse im EU-Raum (RC 10%)"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "income",
+        "reconcile": false,
+        "reference_account_id": 205
+      },
+      {
+        "id": 56,
+        "create_if_missing": true,
+        "code": "4200",
+        "source_name": null,
+        "target_name": {
+          "base": "Revenue international 0%",
+          "translations": {
+            "de_DE": "Brutto-Umsatzerlöse in Drittstaaten (0%)"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "income",
+        "reconcile": false,
+        "reference_account_id": 206
+      },
+      {
+        "id": 57,
+        "create_if_missing": true,
+        "code": "5010",
+        "source_name": null,
+        "target_name": {
+          "base": "Purchased merchandise 20%",
+          "translations": {
+            "de_DE": "Wareneinkauf 20%"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "expense_direct_cost",
+        "reconcile": false,
+        "reference_account_id": 209
+      },
+      {
+        "id": 58,
+        "create_if_missing": true,
+        "code": "5020",
+        "source_name": null,
+        "target_name": {
+          "base": "Purchased merchandise 10%",
+          "translations": {
+            "de_DE": "Wareneinkauf 10%"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "expense_direct_cost",
+        "reconcile": false,
+        "reference_account_id": 210
+      },
+      {
+        "id": 59,
+        "create_if_missing": true,
+        "code": "5110",
+        "source_name": null,
+        "target_name": {
+          "base": "Purchased merchandise 20% (intra-Community acquisitions)",
+          "translations": {
+            "de_DE": "Wareneinkauf ig. Erwerb 20%"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "expense_direct_cost",
+        "reconcile": false,
+        "reference_account_id": 211
+      },
+      {
+        "id": 60,
+        "create_if_missing": true,
+        "code": "5120",
+        "source_name": null,
+        "target_name": {
+          "base": "Purchased merchandise 10% (intra-Community acquisitions)",
+          "translations": {
+            "de_DE": "Wareneinkauf ig. Erwerb 10%"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "expense_direct_cost",
+        "reconcile": false,
+        "reference_account_id": 212
+      },
+      {
+        "id": 61,
+        "create_if_missing": true,
+        "code": "5200",
+        "source_name": null,
+        "target_name": {
+          "base": "Purchased merchandise 0%",
+          "translations": {
+            "de_DE": "Wareneinkauf 0%"
+          }
+        },
+        "posted_lines": 0,
+        "account_type": "expense_direct_cost",
+        "reconcile": false,
+        "reference_account_id": 214
       }
     ]
   },

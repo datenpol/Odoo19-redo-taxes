@@ -66,7 +66,7 @@ class CliTests(unittest.TestCase):
                 "odoo_demo_austria._cli_runtime._build_operations",
                 return_value=[object(), object()],
             ),
-            patch("odoo_demo_austria._cli_runtime._apply_operations", return_value=2),
+            patch("odoo_demo_austria._cli_runtime.apply_operations", return_value=2),
             patch("odoo_demo_austria._cli_runtime.validate_cosmetic_state", return_value=[]),
         ):
             stdout = StringIO()

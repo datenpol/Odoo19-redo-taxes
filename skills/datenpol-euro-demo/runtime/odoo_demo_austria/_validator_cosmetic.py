@@ -171,10 +171,22 @@ def validate_accounts(
     lang: str,
     issues: list[ValidationIssue],
 ) -> None:
-    ids = [item.record_id for item in resolved]
-    base = index_by_id(client.read("account.account", ids, ["code"]))
-    translated = index_by_id(client.read("account.account", ids, ["name"], context={"lang": lang}))
+    ids = [item.record_id for item in resolved if item.record_id is not None]
+    base = index_by_id(client.read("account.account", ids, ["code"])) if ids else {}
+    translated = (
+        index_by_id(client.read("account.account", ids, ["name"], context={"lang": lang}))
+        if ids
+        else {}
+    )
     for item in resolved:
+        if item.record_id is None:
+            issues.append(
+                ValidationIssue(
+                    scope="account.account",
+                    message=f"Missing account {item.spec.code!r}",
+                )
+            )
+            continue
         prefix = f"account.account[{item.record_id}]"
         expect_equal(issues, prefix, "code", base[item.record_id].get("code"), item.spec.code)
         expect_equal(
@@ -210,6 +222,7 @@ def validate_fiscal_positions(
         context={"lang": lang},
     )
     by_id = index_by_id(records)
+    accounts_by_spec_id = {item.spec.record_id: item for item in resolved.accounts}
 
     for item in resolved.fiscal_positions:
         record = _resolve_fiscal_position_record(item, records, by_id, lang, issues)
@@ -260,6 +273,16 @@ def validate_fiscal_positions(
             list(record.get("tax_ids", [])),
             list(item.spec.target_tax_ids),
         )
+        expected_pairs = _expected_fiscal_position_account_pairs(
+            item,
+            accounts_by_spec_id,
+            prefix=prefix,
+            issues=issues,
+        )
+        if expected_pairs is None:
+            continue
+        actual_pairs = _read_fiscal_position_account_pairs(client, int(record["id"]))
+        expect_equal(issues, prefix, "account_ids", actual_pairs, expected_pairs)
 
 
 def _resolve_fiscal_position_record(
@@ -297,3 +320,66 @@ def _resolve_fiscal_position_record(
         )
         return None
     return matches[0]
+
+
+def _expected_fiscal_position_account_pairs(
+    item: ResolvedFiscalPosition,
+    accounts_by_spec_id: dict[int, ResolvedAccount],
+    *,
+    prefix: str,
+    issues: list[ValidationIssue],
+) -> list[tuple[int, int]] | None:
+    expected: list[tuple[int, int]] = []
+    for mapping in item.spec.account_mappings:
+        source = accounts_by_spec_id.get(mapping.source_account_id)
+        replacement = accounts_by_spec_id.get(mapping.replacement_account_id)
+        if source is None or source.record_id is None:
+            issues.append(
+                ValidationIssue(
+                    scope=prefix,
+                    message=(
+                        "Missing source account for fiscal position mapping "
+                        f"{mapping.source_account_id}"
+                    ),
+                )
+            )
+            return None
+        if replacement is None or replacement.record_id is None:
+            issues.append(
+                ValidationIssue(
+                    scope=prefix,
+                    message=(
+                        "Missing replacement account for fiscal position mapping "
+                        f"{mapping.replacement_account_id}"
+                    ),
+                )
+            )
+            return None
+        expected.append((source.record_id, replacement.record_id))
+    return sorted(expected)
+
+
+def _read_fiscal_position_account_pairs(
+    client: Json2Client,
+    fiscal_position_id: int,
+) -> list[tuple[int, int]]:
+    records = client.search_read(
+        "account.fiscal.position.account",
+        domain=[["position_id", "=", fiscal_position_id]],
+        fields=["account_src_id", "account_dest_id"],
+        order="id",
+    )
+    return sorted(
+        (
+            _require_many2one_id(record.get("account_src_id")),
+            _require_many2one_id(record.get("account_dest_id")),
+        )
+        for record in records
+    )
+
+
+def _require_many2one_id(value: Any) -> int:
+    resolved = many2one_id(value)
+    if resolved is None:
+        raise ValueError("Expected a populated many2one value")
+    return resolved

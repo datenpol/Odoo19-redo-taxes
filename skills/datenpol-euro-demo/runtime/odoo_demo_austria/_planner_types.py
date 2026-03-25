@@ -38,7 +38,7 @@ ALLOWED_WRITE_FIELDS: dict[str, set[str]] = {
     },
     "account.tax.repartition.line": {"account_id", "tag_ids", "use_in_tax_closing"},
     "account.journal": {"name"},
-    "account.account": {"name", "code"},
+    "account.account": {"name", "code", "account_type", "reconcile"},
     "account.fiscal.position": {
         "name",
         "sequence",
@@ -53,6 +53,7 @@ ALLOWED_WRITE_FIELDS: dict[str, set[str]] = {
 }
 
 ALLOWED_CREATE_FIELDS: dict[str, set[str]] = {
+    "account.account": ALLOWED_WRITE_FIELDS["account.account"] | {"company_ids"},
     "account.fiscal.position": ALLOWED_WRITE_FIELDS["account.fiscal.position"] | {"company_id"},
 }
 
@@ -97,10 +98,47 @@ class EnsureCreateOperation:
         }
 
 
-PlanOperation = WriteOperation | EnsureCreateOperation
+@dataclass(frozen=True)
+class FiscalPositionAccountMappingLine:
+    source_account_code: str
+    replacement_account_code: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "source_account_code": self.source_account_code,
+            "replacement_account_code": self.replacement_account_code,
+        }
+
+
+@dataclass(frozen=True)
+class ReplaceFiscalPositionAccountsOperation:
+    company_id: int
+    fiscal_position_id: int | None
+    fiscal_position_name: str
+    mappings: tuple[FiscalPositionAccountMappingLine, ...]
+    reason: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": "replace_fiscal_position_accounts",
+            "company_id": self.company_id,
+            "fiscal_position_id": self.fiscal_position_id,
+            "fiscal_position_name": self.fiscal_position_name,
+            "mappings": [item.to_dict() for item in self.mappings],
+            "reason": self.reason,
+        }
+
+
+PlanOperation = WriteOperation | EnsureCreateOperation | ReplaceFiscalPositionAccountsOperation
 
 
 def ensure_operation_safe(operation: PlanOperation) -> None:
+    if isinstance(operation, ReplaceFiscalPositionAccountsOperation):
+        for item in operation.mappings:
+            if not item.source_account_code or not item.replacement_account_code:
+                raise ValueError("Fiscal position account mappings must use non-empty codes")
+        return
+
     if isinstance(operation, WriteOperation):
         _ensure_allowlisted_fields(
             operation.model,

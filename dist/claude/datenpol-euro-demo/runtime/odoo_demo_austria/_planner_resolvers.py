@@ -276,34 +276,63 @@ def _resolve_accounts(
 ) -> tuple[ResolvedAccount, ...]:
     resolved: list[ResolvedAccount] = []
     for spec in accounts:
-        records = client.search_read(
-            "account.account",
-            domain=[
-                ["company_ids", "in", [company_id]],
-                [
-                    "name",
-                    "in",
-                    list(
-                        _candidate_names(
-                            spec.source_name,
-                            spec.target_name.base,
-                            spec.target_name.value_for(lang),
-                        )
-                    ),
+        records = _search_accounts_by_names(client, spec, company_id, lang=lang)
+        if not records:
+            records = client.search_read(
+                "account.account",
+                domain=[
+                    ["company_ids", "in", [company_id]],
+                    ["code", "=", spec.code],
                 ],
-            ],
-            fields=["id", "name", "code"],
-            order="id",
-        )
+                fields=["id", "name", "code"],
+                order="id",
+            )
+        if not records:
+            if spec.create_if_missing:
+                resolved.append(ResolvedAccount(spec=spec, record_id=None))
+                continue
+            raise Json2ClientError(f"Missing account {spec.source_name or spec.target_name.base}")
         exact_code_matches = [
             record for record in records if str(record.get("code") or "") == spec.code
         ]
         if len(exact_code_matches) == 1:
             record = exact_code_matches[0]
         else:
-            record = _single_record(records, model="account.account", label=spec.source_name)
+            record = _single_record(
+                records,
+                model="account.account",
+                label=spec.source_name or spec.target_name.base,
+            )
         resolved.append(ResolvedAccount(spec=spec, record_id=int(record["id"])))
     return tuple(resolved)
+
+
+def _search_accounts_by_names(
+    client: Json2Client,
+    spec: AccountSpec,
+    company_id: int,
+    *,
+    lang: str,
+) -> list[dict[str, Any]]:
+    return client.search_read(
+        "account.account",
+        domain=[
+            ["company_ids", "in", [company_id]],
+            [
+                "name",
+                "in",
+                list(
+                    _candidate_names(
+                        spec.source_name,
+                        spec.target_name.base,
+                        spec.target_name.value_for(lang),
+                    )
+                ),
+            ],
+        ],
+        fields=["id", "name", "code"],
+        order="id",
+    )
 
 
 def _candidate_names(*names: str | None) -> tuple[str, ...]:

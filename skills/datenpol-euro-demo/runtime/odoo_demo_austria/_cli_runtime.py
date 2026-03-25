@@ -4,14 +4,12 @@ import os
 from typing import Sequence
 
 from ._cli_contract import CommandReport, ExitCode, StageReport, skipped_stage
+from ._runtime_apply import apply_operations
 from .json2_client import Json2Client, Json2ClientError
 from .models import ProjectSpec
 from .planner import (
-    EnsureCreateOperation,
     PlanOperation,
-    WriteOperation,
     build_cosmetic_plan,
-    ensure_operation_safe,
     resolve_cosmetic_targets,
 )
 from .validator import validate_cosmetic_state
@@ -72,61 +70,6 @@ def _run_preflight(
         summary=f"Planned {len(operations)} cosmetic operations.",
         operation_count=len(operations),
     )
-def _apply_operations(client: Json2Client, operations: list[PlanOperation]) -> int:
-    for operation in operations:
-        ensure_operation_safe(operation)
-        if isinstance(operation, WriteOperation):
-            client.write(
-                operation.model,
-                list(operation.ids),
-                operation.vals,
-                context=operation.context,
-            )
-            continue
-
-        resolved_id = _apply_ensure_create(client, operation)
-        if operation.update_vals:
-            client.write(
-                operation.model,
-                [resolved_id],
-                operation.update_vals,
-                context=operation.update_context,
-            )
-    return len(operations)
-def _apply_ensure_create(client: Json2Client, operation: EnsureCreateOperation) -> int:
-    matches = client.search_read(
-        operation.model,
-        domain=operation.lookup_domain,
-        fields=["id"],
-        order="id",
-    )
-    if len(matches) > 1:
-        raise Json2ClientError(
-            f"Lookup for {operation.model} returned multiple records: {operation.lookup_domain!r}"
-        )
-    if matches:
-        record_id = int(matches[0]["id"])
-        update_vals = {
-            key: value
-            for key, value in operation.create_vals.items()
-            if key
-            in {
-                "name",
-                "sequence",
-                "auto_apply",
-                "country_id",
-                "country_group_id",
-                "vat_required",
-                "foreign_vat",
-                "tax_ids",
-                "note",
-            }
-        }
-        if update_vals:
-            client.write(operation.model, [record_id], update_vals)
-        return record_id
-    created_id = client.create(operation.model, operation.create_vals)
-    return int(created_id)
 def _execute_doctor(client: Json2Client, spec: ProjectSpec) -> CommandReport:
     preflight_result = _run_preflight(
         "doctor",
@@ -168,7 +111,7 @@ def _execute_apply(client: Json2Client, spec: ProjectSpec) -> CommandReport:
     operations, preflight = preflight_result
 
     try:
-        applied_count = _apply_operations(client, operations)
+        applied_count = apply_operations(client, operations)
         apply = StageReport(
             status="success",
             summary=f"Applied {applied_count} cosmetic operations.",
@@ -255,7 +198,7 @@ def _execute_run(client: Json2Client, spec: ProjectSpec) -> CommandReport:
     operations, preflight = preflight_result
 
     try:
-        applied_count = _apply_operations(client, operations)
+        applied_count = apply_operations(client, operations)
         apply = StageReport(
             status="success",
             summary=f"Applied {applied_count} cosmetic operations.",

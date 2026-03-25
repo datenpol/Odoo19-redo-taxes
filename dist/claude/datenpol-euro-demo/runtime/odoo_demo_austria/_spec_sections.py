@@ -23,6 +23,7 @@ from .models import (
     BankIdentity,
     CompanyIdentity,
     CurrencySpec,
+    FiscalPositionAccountMappingSpec,
     FiscalPositionSpec,
     IdentitySpec,
     JournalSpec,
@@ -279,6 +280,43 @@ def parse_fiscal_positions(root: dict[str, Any]) -> tuple[FiscalPositionSpec, ..
                     item.get("target_tax_ids", []),
                     f"fiscal_positions[{index}].target_tax_ids",
                 ),
+                account_mappings=_parse_fiscal_position_account_mappings(item, index),
             )
         )
     return tuple(fiscal_positions)
+
+
+def _parse_fiscal_position_account_mappings(
+    item: dict[str, Any],
+    index: int,
+) -> tuple[FiscalPositionAccountMappingSpec, ...]:
+    mappings: list[FiscalPositionAccountMappingSpec] = []
+    for mapping_index, entry in enumerate(
+        require_list(
+            item.get("account_mappings", []),
+            f"fiscal_positions[{index}].account_mappings",
+        )
+    ):
+        mapping = require_mapping(
+            entry,
+            f"fiscal_positions[{index}].account_mappings[{mapping_index}]",
+        )
+        mappings.append(
+            FiscalPositionAccountMappingSpec(
+                source_account_id=require_int(
+                    mapping.get("source_account_id"),
+                    (
+                        "fiscal_positions"
+                        f"[{index}].account_mappings[{mapping_index}].source_account_id"
+                    ),
+                ),
+                replacement_account_id=require_int(
+                    mapping.get("replacement_account_id"),
+                    (
+                        "fiscal_positions"
+                        f"[{index}].account_mappings[{mapping_index}].replacement_account_id"
+                    ),
+                ),
+            )
+        )
+    return tuple(mappings)

@@ -16,6 +16,7 @@ from odoo_demo_austria.models import (
 )
 from odoo_demo_austria.planner import (
     EnsureCreateOperation,
+    ReplaceFiscalPositionAccountsOperation,
     WriteOperation,
     build_cosmetic_plan,
     ensure_operation_safe,
@@ -61,7 +62,10 @@ class PlannerTests(unittest.TestCase):
                 for item in project.fiscal_positions
             ),
             accounts=tuple(
-                ResolvedAccount(spec=item, record_id=item.record_id)
+                ResolvedAccount(
+                    spec=item,
+                    record_id=None if item.create_if_missing else item.record_id,
+                )
                 for item in project.chart.explicit_accounts
             ),
         )
@@ -71,7 +75,7 @@ class PlannerTests(unittest.TestCase):
         operations = build_cosmetic_plan(spec, self._resolved_fixture(spec))
         first_operation = operations[0]
         assert isinstance(first_operation, WriteOperation)
-        self.assertEqual(len(operations), 157)
+        self.assertEqual(len(operations), 172)
         self.assertEqual(first_operation.model, "res.company")
         self.assertEqual(first_operation.vals["name"], "Datenpol Wohnatelier GmbH")
         for operation in operations:
@@ -145,8 +149,47 @@ class PlannerTests(unittest.TestCase):
             and operation.lookup_domain
             == [["company_id", "=", 1], ["name", "=", "Europäische Union"]]
         )
+        revenue_10_create = next(
+            operation
+            for operation in operations
+            if isinstance(operation, EnsureCreateOperation)
+            and operation.model == "account.account"
+            and operation.lookup_domain == [["company_ids", "in", [1]], ["code", "=", "4010"]]
+        )
+        eu_mappings = next(
+            operation
+            for operation in operations
+            if isinstance(operation, ReplaceFiscalPositionAccountsOperation)
+            and operation.fiscal_position_name == "Europäische Union"
+        )
         self.assertEqual(account_write.vals["code"], "4000")
         self.assertEqual(eu_position.create_vals["tax_ids"], [[6, 0, [3, 4]]])
+        self.assertEqual(revenue_10_create.create_vals["account_type"], "income")
+        self.assertEqual(
+            [item.to_dict() for item in eu_mappings.mappings],
+            [
+                {
+                    "source_account_code": "4000",
+                    "replacement_account_code": "4100",
+                },
+                {
+                    "source_account_code": "4010",
+                    "replacement_account_code": "4110",
+                },
+                {
+                    "source_account_code": "2000",
+                    "replacement_account_code": "2010",
+                },
+                {
+                    "source_account_code": "5010",
+                    "replacement_account_code": "5110",
+                },
+                {
+                    "source_account_code": "5020",
+                    "replacement_account_code": "5120",
+                },
+            ],
+        )
 
 
 if __name__ == "__main__":

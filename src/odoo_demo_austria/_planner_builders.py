@@ -1,15 +1,21 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
 
+from ._planner_fiscal_position_accounts import (
+    build_fiscal_position_account_mapping_operations,
+)
 from ._planner_types import (
     EnsureCreateOperation,
     PlanOperation,
     WriteOperation,
     ensure_operation_safe,
 )
+from ._planner_write_helpers import (
+    build_ensure_create_operation,
+    build_translated_write_operations,
+)
 from .models import (
-    HtmlTranslatedText,
     ProjectSpec,
     ResolvedAccount,
     ResolvedCurrencyRecord,
@@ -18,10 +24,7 @@ from .models import (
     ResolvedProject,
     ResolvedTax,
     ResolvedTaxGroup,
-    TranslatedText,
 )
-
-TranslatedField = TranslatedText | HtmlTranslatedText
 
 
 def build_cosmetic_plan(
@@ -52,7 +55,14 @@ def build_cosmetic_plan(
     operations.extend(_build_tax_operations(resolved.taxes, lang=lang))
     operations.extend(_build_journal_operations(resolved.journals, lang=lang))
     operations.extend(_build_fiscal_position_operations(resolved, lang=lang))
-    operations.extend(_build_account_operations(resolved.accounts, lang=lang))
+    operations.extend(
+        _build_account_operations(
+            resolved.accounts,
+            company_id=resolved.company_id,
+            lang=lang,
+        )
+    )
+    operations.extend(build_fiscal_position_account_mapping_operations(resolved))
     _ensure_operations_safe(operations)
     return operations
 
@@ -112,7 +122,7 @@ def _build_currency_operations(
     lang: str,
     reason_prefix: str,
 ) -> list[WriteOperation]:
-    return _build_translated_write_operations(
+    return build_translated_write_operations(
         model="res.currency",
         record_id=item.record_id,
         base_fields={
@@ -138,7 +148,7 @@ def _build_tax_group_operations(
     operations: list[WriteOperation] = []
     for tax_group in tax_groups:
         operations.extend(
-            _build_translated_write_operations(
+            build_translated_write_operations(
                 model="account.tax.group",
                 record_id=tax_group.record_id,
                 base_fields={},
@@ -158,7 +168,7 @@ def _build_tax_operations(
     operations: list[WriteOperation] = []
     for tax in taxes:
         operations.extend(
-            _build_translated_write_operations(
+            build_translated_write_operations(
                 model="account.tax",
                 record_id=tax.record_id,
                 base_fields={
@@ -185,7 +195,7 @@ def _build_journal_operations(
     operations: list[WriteOperation] = []
     for journal in journals:
         operations.extend(
-            _build_translated_write_operations(
+            build_translated_write_operations(
                 model="account.journal",
                 record_id=journal.record_id,
                 base_fields={},
@@ -200,74 +210,73 @@ def _build_journal_operations(
 def _build_account_operations(
     accounts: tuple[ResolvedAccount, ...],
     *,
+    company_id: int,
     lang: str,
-) -> list[WriteOperation]:
-    operations: list[WriteOperation] = []
+) -> list[PlanOperation]:
+    operations: list[PlanOperation] = []
     for account in accounts:
-        operations.extend(
-            _build_translated_write_operations(
-                model="account.account",
-                record_id=account.record_id,
-                base_fields={"code": account.spec.code},
-                translated_fields={"name": account.spec.target_name},
-                lang=lang,
-                reason=(
-                    f"Rename account {account.record_id} "
-                    f"({account.spec.code}) cosmetically"
-                ),
+        if account.record_id is not None:
+            operations.extend(
+                build_translated_write_operations(
+                    model="account.account",
+                    record_id=account.record_id,
+                    base_fields=_account_base_fields(account),
+                    translated_fields={"name": account.spec.target_name},
+                    lang=lang,
+                    reason=(
+                        f"Rename account {account.record_id} "
+                        f"({account.spec.code}) cosmetically"
+                    ),
+                )
             )
-        )
-    return operations
+            continue
 
-
-def _build_translated_write_operations(
-    *,
-    model: str,
-    record_id: int,
-    base_fields: Mapping[str, Any],
-    translated_fields: Mapping[str, TranslatedField],
-    lang: str,
-    reason: str,
-) -> list[WriteOperation]:
-    operations = [
-        WriteOperation(
-            model=model,
-            ids=(record_id,),
-            vals={**dict(base_fields), **_base_translation_values(translated_fields)},
-            reason=reason,
-        )
-    ]
-    translated_vals = _translated_values(translated_fields, lang)
-    if translated_vals:
+        if not account.spec.create_if_missing:
+            raise ValueError(f"Account {account.spec.code!r} resolved without a record id")
         operations.append(
-            WriteOperation(
-                model=model,
-                ids=(record_id,),
-                vals=translated_vals,
-                context={"lang": lang},
-                reason=f"{reason} ({lang} translation)",
+            _build_account_create_operation(
+                account,
+                company_id=company_id,
+                lang=lang,
             )
         )
     return operations
 
 
-def _base_translation_values(
-    translated_fields: Mapping[str, TranslatedField],
-) -> dict[str, str]:
-    base_vals: dict[str, str] = {}
-    for field_name, value in translated_fields.items():
-        if isinstance(value, HtmlTranslatedText):
-            base_vals[field_name] = value.base_html
-        else:
-            base_vals[field_name] = value.base
-    return base_vals
+def _account_base_fields(account: ResolvedAccount) -> dict[str, Any]:
+    fields: dict[str, Any] = {"code": account.spec.code}
+    if account.spec.account_type is not None:
+        fields["account_type"] = account.spec.account_type
+    if account.spec.reconcile:
+        fields["reconcile"] = True
+    return fields
 
 
-def _translated_values(
-    translated_fields: Mapping[str, TranslatedField],
+def _build_account_create_operation(
+    account: ResolvedAccount,
+    *,
+    company_id: int,
     lang: str,
-) -> dict[str, str]:
-    return {field_name: value.value_for(lang) for field_name, value in translated_fields.items()}
+) -> EnsureCreateOperation:
+    account_type = account.spec.account_type
+    if account_type is None:
+        raise ValueError(f"Account {account.spec.code!r} is missing account_type metadata")
+    return build_ensure_create_operation(
+        model="account.account",
+        lookup_domain=[
+            ["company_ids", "in", [company_id]],
+            ["code", "=", account.spec.code],
+        ],
+        create_fields={
+            **_account_base_fields(account),
+            "account_type": account_type,
+            "reconcile": account.spec.reconcile,
+            "company_ids": [[6, 0, [company_id]]],
+        },
+        translated_fields={"name": account.spec.target_name},
+        lang=lang,
+        reason=f"Ensure account {account.spec.code} exists cosmetically",
+    )
 
 
 def _build_fiscal_position_operations(
@@ -308,7 +317,7 @@ def _build_single_fiscal_position_operations(
     if fiscal_position.record_id is not None:
         operations: list[PlanOperation] = []
         operations.extend(
-            _build_translated_write_operations(
+            build_translated_write_operations(
                 model="account.fiscal.position",
                 record_id=fiscal_position.record_id,
                 base_fields=base_fields,
@@ -324,7 +333,7 @@ def _build_single_fiscal_position_operations(
         raise ValueError(f"Fiscal position {name!r} has no id and is not marked create_if_missing")
 
     return [
-        _build_ensure_create_operation(
+        build_ensure_create_operation(
             model="account.fiscal.position",
             lookup_domain=[
                 ["company_id", "=", company_id],
@@ -338,36 +347,6 @@ def _build_single_fiscal_position_operations(
             ),
         )
     ]
-
-
-def _build_ensure_create_operation(
-    *,
-    model: str,
-    lookup_domain: list[list[Any]],
-    create_fields: Mapping[str, Any],
-    translated_fields: Mapping[str, TranslatedField],
-    lang: str,
-    reason: str,
-) -> EnsureCreateOperation:
-    create_vals = {**dict(create_fields), **_base_translation_values(translated_fields)}
-    translated_update_vals = _translated_values(translated_fields, lang)
-    if translated_update_vals == {
-        field_name: create_vals[field_name] for field_name in translated_update_vals
-    }:
-        update_vals: dict[str, Any] | None = None
-    else:
-        update_vals = translated_update_vals
-
-    return EnsureCreateOperation(
-        model=model,
-        lookup_domain=lookup_domain,
-        create_vals=create_vals,
-        update_vals=update_vals,
-        update_context={"lang": lang} if update_vals is not None else None,
-        reason=reason,
-    )
-
-
 def _ensure_operations_safe(operations: list[PlanOperation]) -> None:
     for operation in operations:
         ensure_operation_safe(operation)

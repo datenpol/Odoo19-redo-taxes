@@ -111,6 +111,18 @@ class FiscalPositionAccountMappingLine:
 
 
 @dataclass(frozen=True)
+class ReferenceAccountTarget:
+    reference_account_id: int
+    target_code: str
+
+    def to_dict(self) -> dict[str, int | str]:
+        return {
+            "reference_account_id": self.reference_account_id,
+            "target_code": self.target_code,
+        }
+
+
+@dataclass(frozen=True)
 class ReplaceFiscalPositionAccountsOperation:
     company_id: int
     fiscal_position_id: int | None
@@ -129,10 +141,47 @@ class ReplaceFiscalPositionAccountsOperation:
         }
 
 
-PlanOperation = WriteOperation | EnsureCreateOperation | ReplaceFiscalPositionAccountsOperation
+@dataclass(frozen=True)
+class SyncFiscalPositionTaxesFromReferenceOperation:
+    target_company_id: int
+    reference_company_id: int
+    reference_company_name: str
+    display_language: str
+    fiscal_position_names: tuple[str, ...]
+    reference_account_targets: tuple[ReferenceAccountTarget, ...]
+    reason: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": "sync_fiscal_position_taxes_from_reference",
+            "target_company_id": self.target_company_id,
+            "reference_company_id": self.reference_company_id,
+            "reference_company_name": self.reference_company_name,
+            "display_language": self.display_language,
+            "fiscal_position_names": list(self.fiscal_position_names),
+            "reference_account_targets": [
+                item.to_dict() for item in self.reference_account_targets
+            ],
+            "reason": self.reason,
+        }
+
+
+PlanOperation = (
+    WriteOperation
+    | EnsureCreateOperation
+    | ReplaceFiscalPositionAccountsOperation
+    | SyncFiscalPositionTaxesFromReferenceOperation
+)
 
 
 def ensure_operation_safe(operation: PlanOperation) -> None:
+    if isinstance(operation, SyncFiscalPositionTaxesFromReferenceOperation):
+        if not operation.fiscal_position_names:
+            raise ValueError("Reference tax sync requires at least one fiscal position name")
+        if len(set(operation.fiscal_position_names)) != len(operation.fiscal_position_names):
+            raise ValueError("Reference tax sync fiscal position names must be unique")
+        return
+
     if isinstance(operation, ReplaceFiscalPositionAccountsOperation):
         for item in operation.mappings:
             if not item.source_account_code or not item.replacement_account_code:

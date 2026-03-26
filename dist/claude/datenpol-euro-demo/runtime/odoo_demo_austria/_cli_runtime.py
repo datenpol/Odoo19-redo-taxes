@@ -4,6 +4,7 @@ import os
 from typing import Sequence
 
 from ._cli_contract import CommandReport, ExitCode, StageReport, skipped_stage
+from ._planner_reference_tax_sync import build_reference_tax_sync_operation
 from ._runtime_apply import apply_operations
 from .json2_client import Json2Client, Json2ClientError
 from .models import ProjectSpec
@@ -42,7 +43,11 @@ def _build_operations(
     spec: ProjectSpec,
 ) -> list[PlanOperation]:
     resolved = resolve_cosmetic_targets(client, spec)
-    return build_cosmetic_plan(spec, resolved)
+    operations = build_cosmetic_plan(spec, resolved)
+    reference_tax_sync = build_reference_tax_sync_operation(client, spec, resolved)
+    if reference_tax_sync is not None:
+        operations.append(reference_tax_sync)
+    return operations
 def _run_preflight(
     command: str,
     client: Json2Client,

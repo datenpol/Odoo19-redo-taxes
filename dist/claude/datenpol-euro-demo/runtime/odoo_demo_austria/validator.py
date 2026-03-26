@@ -35,6 +35,6 @@ def validate_cosmetic_state(
     validate_tax_groups(client, resolved.tax_groups, lang, issues)
     validate_taxes(client, resolved.taxes, lang, issues)
     validate_journals(client, resolved.journals, lang, issues)
-    validate_fiscal_positions(client, resolved, lang, issues)
+    validate_fiscal_positions(client, spec, resolved, lang, issues)
     validate_accounts(client, resolved.accounts, lang, issues)
     return issues

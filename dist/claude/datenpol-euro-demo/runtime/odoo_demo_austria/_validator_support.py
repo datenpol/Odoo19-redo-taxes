@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -32,7 +33,8 @@ def many2one_id(value: Any) -> int | None:
 def normalize_rich_text(value: Any) -> Any:
     if not isinstance(value, str):
         return value
-    return re.sub(r"<[^>]+>", "", value).strip()
+    stripped = re.sub(r"<[^>]+>", "", value).strip()
+    return html.unescape(stripped)
 
 
 def expect_equal(

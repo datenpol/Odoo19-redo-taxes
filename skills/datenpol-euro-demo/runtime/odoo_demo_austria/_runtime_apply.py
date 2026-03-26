@@ -5,9 +5,11 @@ from ._planner_types import (
     EnsureCreateOperation,
     PlanOperation,
     ReplaceFiscalPositionAccountsOperation,
+    SyncFiscalPositionTaxesFromReferenceOperation,
     WriteOperation,
     ensure_operation_safe,
 )
+from ._runtime_reference_tax_sync import sync_fiscal_position_taxes_from_reference
 from .json2_client import Json2Client, Json2ClientError
 
 
@@ -31,6 +33,9 @@ def apply_operations(client: Json2Client, operations: list[PlanOperation]) -> in
                     operation.update_vals,
                     context=operation.update_context,
                 )
+            continue
+        if isinstance(operation, SyncFiscalPositionTaxesFromReferenceOperation):
+            sync_fiscal_position_taxes_from_reference(client, operation)
             continue
         apply_replace_fiscal_position_accounts(client, operation)
     return len(operations)

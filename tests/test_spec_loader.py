@@ -59,6 +59,9 @@ def _write_json_spec_copy() -> Path:
 class SpecLoaderTests(unittest.TestCase):
     def test_loads_translation_aware_spec(self) -> None:
         spec = load_spec(SPEC_PATH)
+        self.assertTrue(spec.reference_environment.same_database)
+        self.assertEqual(spec.reference_environment.company_id, 3)
+        self.assertEqual(spec.reference_environment.company_name, "AT Company")
         self.assertEqual(spec.localization.primary_display_language, "de_DE")
         self.assertTrue(spec.localization.reference_snapshot_file.exists())
         self.assertEqual(spec.identity.bank.source_acc_number, "BANK134567890")

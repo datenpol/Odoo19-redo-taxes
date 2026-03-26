@@ -29,6 +29,7 @@ from .models import (
     JournalSpec,
     LocalizationSpec,
     ProjectSpec,
+    ReferenceEnvironment,
     SourceEnvironment,
     TaxCosmeticSpec,
     TaxGroupCosmeticSpec,
@@ -42,6 +43,7 @@ def build_project_spec(root: dict[str, Any], spec_path: Path) -> ProjectSpec:
         version=require_str(root.get("version"), "version"),
         status=require_str(root.get("status"), "status"),
         source_environment=parse_source_environment(root),
+        reference_environment=parse_reference_environment(root),
         localization=parse_localization(root, spec_path),
         identity=parse_identity(root),
         currency=parse_currency(root),
@@ -67,6 +69,27 @@ def parse_source_environment(root: dict[str, Any]) -> SourceEnvironment:
         company_name=require_str(
             source_environment.get("company_name"),
             "source_environment.company_name",
+        ),
+    )
+
+
+def parse_reference_environment(root: dict[str, Any]) -> ReferenceEnvironment:
+    reference_environment = require_mapping(
+        root.get("reference_environment"),
+        "reference_environment",
+    )
+    return ReferenceEnvironment(
+        same_database=require_bool(
+            reference_environment.get("same_database"),
+            "reference_environment.same_database",
+        ),
+        company_id=require_int(
+            reference_environment.get("company_id"),
+            "reference_environment.company_id",
+        ),
+        company_name=require_str(
+            reference_environment.get("company_name"),
+            "reference_environment.company_name",
         ),
     )
 

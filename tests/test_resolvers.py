@@ -20,11 +20,13 @@ class FakeResolverClient:
         use_target_names: bool,
         use_umlaut_source_names: bool = False,
         use_translated_target_names: bool = False,
+        append_copy_suffix_to_tax_names: bool = False,
     ) -> None:
         self.spec = spec
         self.use_target_names = use_target_names
         self.use_umlaut_source_names = use_umlaut_source_names
         self.use_translated_target_names = use_translated_target_names
+        self.append_copy_suffix_to_tax_names = append_copy_suffix_to_tax_names
 
     def search_read(
         self,
@@ -107,9 +109,12 @@ class FakeResolverClient:
             if self.use_translated_target_names
             else spec.cosmetic.target_name.base
         )
+        name = self._name(spec.source_name, target_name)
+        if self.append_copy_suffix_to_tax_names:
+            name = f"{name} (Kopie)"
         return {
-            "id": spec.record_id + 100,
-            "name": self._name(spec.source_name, target_name),
+            "id": spec.record_id,
+            "name": name,
             "tax_group_id": [self._resolved_tax_group_id(spec.cosmetic.target_group_id), "group"],
         }
 
@@ -182,6 +187,9 @@ class FakeResolverClient:
         }
 
     def _single_tax_spec(self, domain: list[Any]) -> Any:
+        record_id = self._optional_domain_value(domain, "id")
+        if record_id is not None:
+            return next(item for item in self.spec.taxes if item.record_id == record_id)
         names = self._domain_value(domain, "name")
         type_tax_use = self._domain_value(domain, "type_tax_use")
         matches = [
@@ -243,7 +251,7 @@ class ResolverTests(unittest.TestCase):
         self.assertEqual(resolved.company_id, 1)
         self.assertEqual(resolved.company_partner_id, 11)
         self.assertEqual(resolved.bank.record_id, 2)
-        self.assertEqual(resolved.taxes[0].record_id, 101)
+        self.assertEqual(resolved.taxes[0].record_id, 1)
         self.assertEqual(resolved.tax_groups[0].record_id, 5_001)
         self.assertEqual(resolved.journals[0].record_id, 1_001)
         self.assertEqual(resolved.accounts[0].record_id, 3_001)
@@ -258,7 +266,7 @@ class ResolverTests(unittest.TestCase):
 
         self.assertEqual(resolved.active_company_currency.record_id, 1)
         self.assertEqual(resolved.displaced_reference_currency.record_id, 126)
-        self.assertEqual(resolved.taxes[1].record_id, 102)
+        self.assertEqual(resolved.taxes[1].record_id, 2)
         self.assertEqual(resolved.journals[-1].record_id, 1_021)
         purchased_0 = next(item for item in resolved.accounts if item.spec.code == "5200")
         self.assertEqual(purchased_0.record_id, 3_061)
@@ -276,10 +284,26 @@ class ResolverTests(unittest.TestCase):
         )
         resolved = resolve_cosmetic_targets(client, spec)
 
-        self.assertEqual(resolved.taxes[1].record_id, 102)
+        self.assertEqual(resolved.taxes[1].record_id, 2)
         self.assertEqual(resolved.journals[-1].record_id, 1_021)
         revenue_10 = next(item for item in resolved.accounts if item.spec.code == "4010")
         self.assertEqual(revenue_10.record_id, 3_051)
+
+    def test_resolves_taxes_by_stable_id_after_copy_suffix_rename(self) -> None:
+        spec = load_spec(SPEC_PATH)
+        client = cast(
+            Json2Client,
+            FakeResolverClient(
+                spec,
+                use_target_names=True,
+                append_copy_suffix_to_tax_names=True,
+            ),
+        )
+
+        resolved = resolve_cosmetic_targets(client, spec)
+
+        self.assertEqual(resolved.taxes[0].record_id, 1)
+        self.assertEqual(resolved.taxes[1].record_id, 2)
 
     def test_resolves_ascii_spec_names_against_umlaut_source_records(self) -> None:
         spec = load_spec(SPEC_PATH)

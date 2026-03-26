@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ._validator_reference_tax_surface import validate_reference_tax_surface
 from ._validator_support import (
     ValidationIssue,
     expect_equal,
@@ -12,6 +13,7 @@ from ._validator_support import (
 )
 from .json2_client import Json2Client
 from .models import (
+    ProjectSpec,
     ResolvedAccount,
     ResolvedCurrencyRecord,
     ResolvedFiscalPosition,
@@ -200,6 +202,7 @@ def validate_accounts(
 
 def validate_fiscal_positions(
     client: Json2Client,
+    spec: ProjectSpec,
     resolved: ResolvedProject,
     lang: str,
     issues: list[ValidationIssue],
@@ -266,13 +269,24 @@ def validate_fiscal_positions(
             record.get("foreign_vat"),
             item.spec.foreign_vat,
         )
-        expect_equal(
-            issues,
-            prefix,
-            "tax_ids",
-            list(record.get("tax_ids", [])),
-            list(item.spec.target_tax_ids),
-        )
+        if spec.reference_environment.same_database:
+            validate_reference_tax_surface(
+                client,
+                spec,
+                target_fiscal_position_id=int(record["id"]),
+                fiscal_position_name=item.spec.target_name.base,
+                lang=lang,
+                prefix=prefix,
+                issues=issues,
+            )
+        else:
+            expect_equal(
+                issues,
+                prefix,
+                "tax_ids",
+                list(record.get("tax_ids", [])),
+                list(item.spec.target_tax_ids),
+            )
         expected_pairs = _expected_fiscal_position_account_pairs(
             item,
             accounts_by_spec_id,

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections import deque
 from typing import Any
 
+from ._planner_name_matching import candidate_names
 from .json2_client import Json2Client, Json2ClientError
 from .models import (
     AccountSpec,
@@ -63,7 +63,7 @@ def resolve_cosmetic_targets(client: Json2Client, spec: ProjectSpec) -> Resolved
 def _resolve_company(client: Json2Client, spec: ProjectSpec) -> dict[str, Any]:
     records = client.search_read(
         "res.company",
-        domain=[["name", "in", list(_candidate_names(
+        domain=[["name", "in", list(candidate_names(
             spec.source_environment.company_name,
             spec.identity.company.target_company_name,
         ))]],
@@ -81,7 +81,7 @@ def _resolve_displaced_currency(
 ) -> ResolvedCurrencyRecord:
     records = client.search_read(
         "res.currency",
-        domain=[["name", "in", list(_candidate_names(spec.source_code, spec.target_code))]],
+        domain=[["name", "in", list(candidate_names(spec.source_code, spec.target_code))]],
         fields=["id", "name"],
         order="id",
     )
@@ -97,7 +97,7 @@ def _resolve_bank(client: Json2Client, partner_id: int, spec: BankIdentity) -> R
         fields=["id", "acc_number", "lock_trust_fields"],
         order="id",
     )
-    acc_numbers = _candidate_names(spec.source_acc_number, spec.acc_number)
+    acc_numbers = candidate_names(spec.source_acc_number, spec.acc_number)
     matches = [record for record in records if str(record.get("acc_number")) in acc_numbers]
     if not matches:
         matches = records
@@ -117,26 +117,7 @@ def _resolve_taxes(
 ) -> tuple[ResolvedTax, ...]:
     resolved: list[ResolvedTax] = []
     for spec in taxes:
-        records = client.search_read(
-            "account.tax",
-            domain=[
-                ["company_id", "=", company_id],
-                ["type_tax_use", "=", spec.source_type_tax_use],
-                [
-                    "name",
-                    "in",
-                    list(
-                        _candidate_names(
-                            spec.source_name,
-                            spec.cosmetic.target_name.base,
-                            spec.cosmetic.target_name.value_for(lang),
-                        )
-                    ),
-                ],
-            ],
-            fields=["id", "name", "tax_group_id"],
-            order="id",
-        )
+        records = _resolve_tax_records(client, spec, company_id, lang=lang)
         record = _single_record(records, model="account.tax", label=spec.source_name)
         resolved.append(
             ResolvedTax(
@@ -146,6 +127,48 @@ def _resolve_taxes(
             )
         )
     return tuple(resolved)
+
+
+def _resolve_tax_records(
+    client: Json2Client,
+    spec: TaxSpec,
+    company_id: int,
+    *,
+    lang: str,
+) -> list[dict[str, Any]]:
+    if spec.record_id:
+        by_id = client.search_read(
+            "account.tax",
+            domain=[
+                ["id", "=", spec.record_id],
+                ["company_id", "=", company_id],
+                ["type_tax_use", "=", spec.source_type_tax_use],
+            ],
+            fields=["id", "name", "tax_group_id"],
+            order="id",
+        )
+        if by_id:
+            return by_id
+    return client.search_read(
+        "account.tax",
+        domain=[
+            ["company_id", "=", company_id],
+            ["type_tax_use", "=", spec.source_type_tax_use],
+            [
+                "name",
+                "in",
+                list(
+                    candidate_names(
+                        spec.source_name,
+                        spec.cosmetic.target_name.base,
+                        spec.cosmetic.target_name.value_for(lang),
+                    )
+                ),
+            ],
+        ],
+        fields=["id", "name", "tax_group_id"],
+        order="id",
+    )
 
 
 def _resolve_tax_groups(
@@ -177,14 +200,14 @@ def _resolve_tax_groups(
         record = groups_by_id.get(group_id)
         if record is None:
             raise Json2ClientError(f"Missing resolved tax group id {group_id}")
-        candidate_names = _candidate_names(
+        expected_names = candidate_names(
             group_spec.source_name,
             group_spec.cosmetic.target_name.base,
             group_spec.cosmetic.target_name.value_for(lang),
         )
-        if str(record.get("name")) not in candidate_names:
+        if str(record.get("name")) not in expected_names:
             raise Json2ClientError(
-                f"Resolved tax group {group_id} does not match expected names {candidate_names!r}"
+                f"Resolved tax group {group_id} does not match expected names {expected_names!r}"
             )
         resolved.append(ResolvedTaxGroup(spec=group_spec, record_id=group_id))
     return tuple(resolved)
@@ -207,7 +230,7 @@ def _resolve_journals(
                     "name",
                     "in",
                     list(
-                        _candidate_names(
+                        candidate_names(
                             spec.source_name,
                             spec.target_name.base,
                             spec.target_name.value_for(lang),
@@ -240,7 +263,7 @@ def _resolve_fiscal_positions(
                     "name",
                     "in",
                     list(
-                        _candidate_names(
+                        candidate_names(
                             spec.source_name,
                             spec.target_name.base,
                             spec.target_name.value_for(lang),
@@ -322,7 +345,7 @@ def _search_accounts_by_names(
                 "name",
                 "in",
                 list(
-                    _candidate_names(
+                    candidate_names(
                         spec.source_name,
                         spec.target_name.base,
                         spec.target_name.value_for(lang),
@@ -333,52 +356,6 @@ def _search_accounts_by_names(
         fields=["id", "name", "code"],
         order="id",
     )
-
-
-def _candidate_names(*names: str | None) -> tuple[str, ...]:
-    values: list[str] = []
-    for name in names:
-        for variant in _name_variants(name):
-            if variant not in values:
-                values.append(variant)
-    return tuple(values)
-
-
-def _name_variants(name: str | None) -> tuple[str, ...]:
-    if not name:
-        return ()
-
-    variants: list[str] = []
-    pending: deque[str] = deque([name])
-    seen: set[str] = set()
-    replacements = (
-        ("ae", "ä"),
-        ("oe", "ö"),
-        ("ue", "ü"),
-        ("ss", "ß"),
-        ("Ae", "Ä"),
-        ("Oe", "Ö"),
-        ("Ue", "Ü"),
-        ("ä", "ae"),
-        ("ö", "oe"),
-        ("ü", "ue"),
-        ("Ä", "Ae"),
-        ("Ö", "Oe"),
-        ("Ü", "Ue"),
-        ("ß", "ss"),
-    )
-
-    while pending:
-        current = pending.popleft()
-        if current in seen:
-            continue
-        seen.add(current)
-        variants.append(current)
-        for old, new in replacements:
-            if old in current:
-                pending.append(current.replace(old, new))
-
-    return tuple(variants)
 
 
 def _many2one_id(value: Any, field_name: str) -> int:

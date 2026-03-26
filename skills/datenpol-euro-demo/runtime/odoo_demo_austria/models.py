@@ -35,6 +35,13 @@ class SourceEnvironment:
 
 
 @dataclass(frozen=True)
+class ReferenceEnvironment:
+    same_database: bool
+    company_id: int
+    company_name: str
+
+
+@dataclass(frozen=True)
 class LocalizationSpec:
     primary_display_language: str
     reference_harvest_date: str
@@ -182,6 +189,7 @@ class ProjectSpec:
     version: str
     status: str
     source_environment: SourceEnvironment
+    reference_environment: ReferenceEnvironment
     localization: LocalizationSpec
     identity: IdentitySpec
     currency: CurrencySpec

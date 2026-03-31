@@ -18,7 +18,7 @@ The generated skill bundles its own launcher, runtime package, packaged JSON spe
 User-facing install request in Codex:
 
 ```text
-$skill-installer https://github.com/dmulec-dp/Odoo19-redo-taxes
+$skill-installer https://github.com/datenpol/Odoo19-redo-taxes
 ```
 
 Public install boundary in this repo:
@@ -29,10 +29,14 @@ Equivalent direct helper invocation:
 
 ```powershell
 $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
-py -3 (Join-Path $codexHome "skills\.system\skill-installer\scripts\install-skill-from-github.py") --repo dmulec-dp/Odoo19-redo-taxes --path skills/datenpol-euro-demo
+py -3 (Join-Path $codexHome "skills\.system\skill-installer\scripts\install-skill-from-github.py") --repo datenpol/Odoo19-redo-taxes --path skills/datenpol-euro-demo
 ```
 
 After install, restart Codex to pick up the new skill.
+
+German sales quickstart:
+
+- `docs/vertrieb-datenpol-euro-demo.md`
 
 ## Use
 

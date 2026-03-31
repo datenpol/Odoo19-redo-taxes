@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ._reference_company import resolve_reference_company
 from ._validator_support import ValidationIssue, index_by_id, normalize_rich_text
 from .json2_client import Json2Client, Json2ClientError
 from .models import ProjectSpec
@@ -17,7 +18,7 @@ def validate_reference_tax_surface(
     prefix: str,
     issues: list[ValidationIssue],
 ) -> None:
-    reference_company_id = _reference_company_id(client, spec)
+    reference_company_id = resolve_reference_company(client, spec).record_id
     reference_fiscal_position_id = _reference_fiscal_position_id(
         client,
         company_id=reference_company_id,
@@ -46,19 +47,6 @@ def validate_reference_tax_surface(
                 ),
             )
         )
-
-
-def _reference_company_id(client: Json2Client, spec: ProjectSpec) -> int:
-    records = client.read(
-        "res.company",
-        [spec.reference_environment.company_id],
-        ["id"],
-    )
-    if len(records) != 1:
-        raise Json2ClientError(
-            f"Missing reference company id {spec.reference_environment.company_id}"
-        )
-    return int(records[0]["id"])
 
 
 def _reference_fiscal_position_id(

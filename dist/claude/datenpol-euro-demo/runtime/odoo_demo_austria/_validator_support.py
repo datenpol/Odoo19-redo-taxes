@@ -30,6 +30,13 @@ def many2one_id(value: Any) -> int | None:
     return int(value)
 
 
+def require_many2one_id(value: Any) -> int:
+    resolved = many2one_id(value)
+    if resolved is None:
+        raise ValueError("Expected a populated many2one value")
+    return resolved
+
+
 def normalize_rich_text(value: Any) -> Any:
     if not isinstance(value, str):
         return value

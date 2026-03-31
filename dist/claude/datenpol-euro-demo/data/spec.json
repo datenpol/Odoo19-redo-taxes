@@ -617,6 +617,7 @@
         "id": 291,
         "code": "2700",
         "source_name": "Bargeld (Moebelhaus)",
+        "optional": true,
         "target_name": {
           "base": "Bargeld (Schauraum Wien)",
           "translations": {
@@ -629,6 +630,7 @@
         "id": 292,
         "code": "2710",
         "source_name": "Bargeld (Kleidergeschaeft)",
+        "optional": true,
         "target_name": {
           "base": "Bargeld (Schauraum Salzburg)",
           "translations": {
@@ -641,6 +643,7 @@
         "id": 293,
         "code": "2720",
         "source_name": "Bargeld (Baeckerei)",
+        "optional": true,
         "target_name": {
           "base": "Bargeld (Outlet Linz)",
           "translations": {

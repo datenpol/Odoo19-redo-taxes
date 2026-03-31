@@ -233,6 +233,8 @@ def _build_account_operations(
             )
             continue
 
+        if account.spec.optional:
+            continue
         if not account.spec.create_if_missing:
             raise ValueError(f"Account {account.spec.code!r} resolved without a record id")
         operations.append(

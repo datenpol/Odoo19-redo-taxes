@@ -227,6 +227,42 @@ class PlannerTests(unittest.TestCase):
             )
         )
 
+    def test_plan_skips_optional_account_without_record_id(self) -> None:
+        spec = load_spec(SPEC_PATH)
+        resolved = self._resolved_fixture(spec)
+        accounts = tuple(
+            ResolvedAccount(
+                spec=item.spec,
+                record_id=None if item.spec.code == "2700" else item.record_id,
+            )
+            for item in resolved.accounts
+        )
+
+        operations = build_cosmetic_plan(
+            spec,
+            ResolvedProject(
+                company_id=resolved.company_id,
+                company_partner_id=resolved.company_partner_id,
+                bank=resolved.bank,
+                active_company_currency=resolved.active_company_currency,
+                displaced_reference_currency=resolved.displaced_reference_currency,
+                tax_groups=resolved.tax_groups,
+                taxes=resolved.taxes,
+                journals=resolved.journals,
+                fiscal_positions=resolved.fiscal_positions,
+                accounts=accounts,
+            ),
+        )
+
+        self.assertFalse(
+            any(
+                isinstance(operation, WriteOperation)
+                and operation.model == "account.account"
+                and operation.ids == (291,)
+                for operation in operations
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

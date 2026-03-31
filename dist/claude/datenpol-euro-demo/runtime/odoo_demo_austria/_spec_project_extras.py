@@ -59,6 +59,10 @@ def parse_accounts(chart: dict[str, Any]) -> tuple[AccountSpec, ...]:
                     item.get("create_if_missing", False),
                     f"chart.explicit_accounts[{index}].create_if_missing",
                 ),
+                optional=require_bool(
+                    item.get("optional", False),
+                    f"chart.explicit_accounts[{index}].optional",
+                ),
                 code=require_str(
                     item.get("code"),
                     f"chart.explicit_accounts[{index}].code",

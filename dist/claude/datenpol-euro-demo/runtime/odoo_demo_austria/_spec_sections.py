@@ -83,7 +83,7 @@ def parse_reference_environment(root: dict[str, Any]) -> ReferenceEnvironment:
             reference_environment.get("same_database"),
             "reference_environment.same_database",
         ),
-        company_id=require_int(
+        company_id=optional_int(
             reference_environment.get("company_id"),
             "reference_environment.company_id",
         ),

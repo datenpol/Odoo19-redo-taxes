@@ -23,6 +23,7 @@ class FakeResolverClient:
         append_copy_suffix_to_tax_names: bool = False,
         company_name_override: str | None = None,
         missing_journal_source_names: frozenset[str] = frozenset(),
+        missing_account_codes: frozenset[str] = frozenset(),
     ) -> None:
         self.spec = spec
         self.use_target_names = use_target_names
@@ -31,6 +32,7 @@ class FakeResolverClient:
         self.append_copy_suffix_to_tax_names = append_copy_suffix_to_tax_names
         self.company_name_override = company_name_override
         self.missing_journal_source_names = missing_journal_source_names
+        self.missing_account_codes = missing_account_codes
 
     def search_read(
         self,
@@ -172,6 +174,7 @@ class FakeResolverClient:
             ]
         if not self.use_target_names:
             matches = [item for item in matches if not item.create_if_missing]
+        matches = [item for item in matches if item.code not in self.missing_account_codes]
         return [
             {
                 "id": item.record_id + 3_000,
@@ -360,6 +363,22 @@ class ResolverTests(unittest.TestCase):
 
         by_source_name = {item.spec.source_name: item.record_id for item in resolved.journals}
         self.assertIsNone(by_source_name["Kassensystem"])
+
+    def test_skips_missing_optional_account(self) -> None:
+        spec = load_spec(SPEC_PATH)
+        client = cast(
+            Json2Client,
+            FakeResolverClient(
+                spec,
+                use_target_names=False,
+                missing_account_codes=frozenset({"2700"}),
+            ),
+        )
+
+        resolved = resolve_cosmetic_targets(client, spec)
+
+        by_code = {item.spec.code: item.record_id for item in resolved.accounts}
+        self.assertIsNone(by_code["2700"])
 
 
 if __name__ == "__main__":

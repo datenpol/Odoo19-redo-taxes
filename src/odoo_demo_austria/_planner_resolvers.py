@@ -315,7 +315,7 @@ def _resolve_accounts(
                 order="id",
             )
         if not records:
-            if spec.create_if_missing:
+            if spec.create_if_missing or spec.optional:
                 resolved.append(ResolvedAccount(spec=spec, record_id=None))
                 continue
             raise Json2ClientError(f"Missing account {spec.source_name or spec.target_name.base}")

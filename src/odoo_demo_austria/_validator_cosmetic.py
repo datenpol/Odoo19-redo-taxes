@@ -9,6 +9,7 @@ from ._validator_support import (
     index_by_id,
     many2one_id,
     normalize_rich_text,
+    require_many2one_id,
     single,
 )
 from .json2_client import Json2Client
@@ -182,6 +183,8 @@ def validate_accounts(
     ) if ids else {}
     for item in resolved:
         if item.record_id is None:
+            if item.spec.optional:
+                continue
             issues.append(
                 ValidationIssue(
                     scope="account.account",
@@ -385,15 +388,8 @@ def _read_fiscal_position_account_pairs(
     )
     return sorted(
         (
-            _require_many2one_id(record.get("account_src_id")),
-            _require_many2one_id(record.get("account_dest_id")),
+            require_many2one_id(record.get("account_src_id")),
+            require_many2one_id(record.get("account_dest_id")),
         )
         for record in records
     )
-
-
-def _require_many2one_id(value: Any) -> int:
-    resolved = many2one_id(value)
-    if resolved is None:
-        raise ValueError("Expected a populated many2one value")
-    return resolved

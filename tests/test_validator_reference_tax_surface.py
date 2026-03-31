@@ -28,10 +28,13 @@ class FakeReferenceTaxSurfaceClient:
         context: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         del fields, order, context
+        if model == "res.company":
+            name = next(value for field, _operator, value in domain if field == "name")
+            return [{"id": 2, "name": name}]
         if model == "account.fiscal.position":
             company_id = next(value for field, _operator, value in domain if field == "company_id")
             name = next(value for field, _operator, value in domain if field == "name")
-            record_id = 101 if company_id == 1 else 201
+            record_id = 101 if company_id == 1 else 201 if company_id == 2 else 301
             return [{"id": record_id, "name": name}]
         if model == "account.tax":
             company_id = next(value for field, _operator, value in domain if field == "company_id")
@@ -67,8 +70,6 @@ class FakeReferenceTaxSurfaceClient:
         context: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         del fields, context
-        if model == "res.company":
-            return [{"id": ids[0], "name": "AT Company"}]
         if model == "account.fiscal.position":
             return [{"id": ids[0], "company_id": [1, "Datenpol Wohnatelier GmbH"]}]
         if model == "account.tax":
@@ -119,6 +120,23 @@ class ReferenceTaxSurfaceValidatorTests(unittest.TestCase):
             Json2Client,
             FakeReferenceTaxSurfaceClient(mismatch=False, html_escaped_target=True),
         )
+
+        validate_reference_tax_surface(
+            client,
+            spec,
+            target_fiscal_position_id=101,
+            fiscal_position_name="National",
+            lang="de_DE",
+            prefix="account.fiscal.position[101]",
+            issues=issues,
+        )
+
+        self.assertEqual(issues, [])
+
+    def test_reference_tax_surface_uses_same_database_company_name_over_spec_id(self) -> None:
+        spec = load_spec(SPEC_PATH)
+        issues: list[ValidationIssue] = []
+        client = cast(Json2Client, FakeReferenceTaxSurfaceClient(mismatch=False))
 
         validate_reference_tax_surface(
             client,

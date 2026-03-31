@@ -37,7 +37,7 @@ class SourceEnvironment:
 @dataclass(frozen=True)
 class ReferenceEnvironment:
     same_database: bool
-    company_id: int
+    company_id: int | None
     company_name: str | None
 
 
@@ -161,6 +161,7 @@ class FiscalPositionSpec:
 class AccountSpec:
     record_id: int
     create_if_missing: bool
+    optional: bool
     code: str
     source_name: str | None
     target_name: TranslatedText

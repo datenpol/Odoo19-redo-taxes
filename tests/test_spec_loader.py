@@ -71,6 +71,9 @@ class SpecLoaderTests(unittest.TestCase):
         self.assertEqual(len(spec.fiscal_positions), 4)
         self.assertEqual(len(spec.chart.explicit_accounts), 64)
         optional_journal_names = {item.source_name for item in spec.journals if item.optional}
+        optional_account_codes = {
+            item.code for item in spec.chart.explicit_accounts if item.optional
+        }
         self.assertEqual(
             optional_journal_names,
             {
@@ -85,6 +88,7 @@ class SpecLoaderTests(unittest.TestCase):
                 "Journal Loan Demo",
             },
         )
+        self.assertEqual(optional_account_codes, {"2700", "2710", "2720"})
 
     def test_loads_german_tax_description_translation(self) -> None:
         spec = load_spec(SPEC_PATH)
@@ -171,6 +175,81 @@ class SpecLoaderTests(unittest.TestCase):
             spec_path.unlink(missing_ok=True)
 
         self.assertIsNone(spec.source_environment.company_name)
+
+    def test_same_database_reference_company_id_is_optional(self) -> None:
+        raw_spec = yaml.safe_load(SPEC_PATH.read_text(encoding="utf-8"))
+        if raw_spec is None:
+            raise AssertionError("Expected canonical YAML spec to parse to data")
+        raw_spec["reference_environment"]["company_id"] = None
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            suffix=".json",
+            prefix="spec-loader-optional-reference-company-id-",
+            dir=ROOT / "data",
+            delete=False,
+        ) as handle:
+            json.dump(raw_spec, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+            spec_path = Path(handle.name)
+        try:
+            spec = load_spec(spec_path)
+        finally:
+            spec_path.unlink(missing_ok=True)
+
+        self.assertIsNone(spec.reference_environment.company_id)
+
+    def test_same_database_reference_company_name_is_required(self) -> None:
+        raw_spec = yaml.safe_load(SPEC_PATH.read_text(encoding="utf-8"))
+        if raw_spec is None:
+            raise AssertionError("Expected canonical YAML spec to parse to data")
+        raw_spec["reference_environment"]["company_name"] = None
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            suffix=".json",
+            prefix="spec-loader-missing-reference-company-name-",
+            dir=ROOT / "data",
+            delete=False,
+        ) as handle:
+            json.dump(raw_spec, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+            spec_path = Path(handle.name)
+        try:
+            with self.assertRaises(SpecValidationError) as context:
+                load_spec(spec_path)
+        finally:
+            spec_path.unlink(missing_ok=True)
+
+        self.assertIn("reference_environment.company_name", str(context.exception))
+
+    def test_optional_accounts_cannot_be_used_in_fiscal_position_mappings(self) -> None:
+        raw_spec = yaml.safe_load(SPEC_PATH.read_text(encoding="utf-8"))
+        if raw_spec is None:
+            raise AssertionError("Expected canonical YAML spec to parse to data")
+        cash_account = next(
+            item for item in raw_spec["chart"]["explicit_accounts"] if item["id"] == 291
+        )
+        cash_account["optional"] = True
+        raw_spec["fiscal_positions"][2]["account_mappings"][0]["source_account_id"] = 291
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            suffix=".json",
+            prefix="spec-loader-optional-account-mapping-",
+            dir=ROOT / "data",
+            delete=False,
+        ) as handle:
+            json.dump(raw_spec, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+            spec_path = Path(handle.name)
+        try:
+            with self.assertRaises(SpecValidationError) as context:
+                load_spec(spec_path)
+        finally:
+            spec_path.unlink(missing_ok=True)
+
+        self.assertIn("optional account spec id 291", str(context.exception))
 
     def test_yaml_load_without_pyyaml_dependency_fails_clearly(self) -> None:
         module_name = "odoo_demo_austria.spec_loader"

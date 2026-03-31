@@ -195,6 +195,7 @@ journals:
   reference_journal_id: 10
 - id: 4
   source_name: Exchange Difference
+  optional: true
   target_name:
     base: Exchange Difference
     translations:
@@ -202,6 +203,7 @@ journals:
   reference_journal_id: 11
 - id: 5
   source_name: Cash Basis Taxes
+  optional: true
   target_name:
     base: Cash Basis Taxes
     translations:
@@ -216,6 +218,7 @@ journals:
   reference_journal_id: 13
 - id: 7
   source_name: Bestandsbewertung
+  optional: true
   target_name:
     base: Inventory Valuation
     translations:
@@ -223,30 +226,35 @@ journals:
   reference_journal_id: 14
 - id: 15
   source_name: Kassensystem
+  optional: true
   target_name:
     base: Kassensystem
     translations:
       de_DE: Kassensystem
 - id: 16
   source_name: Bargeld (Möbelhaus)
+  optional: true
   target_name:
     base: Bargeld (Schauraum Wien)
     translations:
       de_DE: Bargeld (Schauraum Wien)
 - id: 17
   source_name: Bargeld (Kleidergeschaeft)
+  optional: true
   target_name:
     base: Bargeld (Schauraum Salzburg)
     translations:
       de_DE: Bargeld (Schauraum Salzburg)
 - id: 18
   source_name: Bargeld (Baeckerei)
+  optional: true
   target_name:
     base: Bargeld (Outlet Linz)
     translations:
       de_DE: Bargeld (Outlet Linz)
 - id: 19
   source_name: Tax Returns
+  optional: true
   target_name:
     base: Tax Returns
     translations:
@@ -254,6 +262,7 @@ journals:
   reference_journal_id: 20
 - id: 21
   source_name: Journal Loan Demo
+  optional: true
   target_name:
     base: Loan Demo Journal
     translations:

@@ -280,6 +280,7 @@
     {
       "id": 4,
       "source_name": "Exchange Difference",
+      "optional": true,
       "target_name": {
         "base": "Exchange Difference",
         "translations": {
@@ -291,6 +292,7 @@
     {
       "id": 5,
       "source_name": "Cash Basis Taxes",
+      "optional": true,
       "target_name": {
         "base": "Cash Basis Taxes",
         "translations": {
@@ -313,6 +315,7 @@
     {
       "id": 7,
       "source_name": "Bestandsbewertung",
+      "optional": true,
       "target_name": {
         "base": "Inventory Valuation",
         "translations": {
@@ -324,6 +327,7 @@
     {
       "id": 15,
       "source_name": "Kassensystem",
+      "optional": true,
       "target_name": {
         "base": "Kassensystem",
         "translations": {
@@ -334,6 +338,7 @@
     {
       "id": 16,
       "source_name": "Bargeld (Möbelhaus)",
+      "optional": true,
       "target_name": {
         "base": "Bargeld (Schauraum Wien)",
         "translations": {
@@ -344,6 +349,7 @@
     {
       "id": 17,
       "source_name": "Bargeld (Kleidergeschaeft)",
+      "optional": true,
       "target_name": {
         "base": "Bargeld (Schauraum Salzburg)",
         "translations": {
@@ -354,6 +360,7 @@
     {
       "id": 18,
       "source_name": "Bargeld (Baeckerei)",
+      "optional": true,
       "target_name": {
         "base": "Bargeld (Outlet Linz)",
         "translations": {
@@ -364,6 +371,7 @@
     {
       "id": 19,
       "source_name": "Tax Returns",
+      "optional": true,
       "target_name": {
         "base": "Tax Returns",
         "translations": {
@@ -375,6 +383,7 @@
     {
       "id": 21,
       "source_name": "Journal Loan Demo",
+      "optional": true,
       "target_name": {
         "base": "Loan Demo Journal",
         "translations": {

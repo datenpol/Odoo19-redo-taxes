@@ -42,7 +42,6 @@ def validate_currency(
     translated_record = single(
         client.read("res.currency", [resolved.record_id], fields, context={"lang": lang})
     )
-
     prefix = f"res.currency[{resolved.record_id}]"
     expect_equal(issues, prefix, "name", base_record.get("name"), resolved.spec.target_code)
     expect_equal(issues, prefix, "symbol", base_record.get("symbol"), resolved.spec.target_symbol)
@@ -154,9 +153,12 @@ def validate_journals(
     lang: str,
     issues: list[ValidationIssue],
 ) -> None:
-    ids = [item.record_id for item in resolved]
+    if not (ids := [item.record_id for item in resolved if item.record_id is not None]):
+        return
     translated = index_by_id(client.read("account.journal", ids, ["name"], context={"lang": lang}))
     for item in resolved:
+        if item.record_id is None:
+            continue
         prefix = f"account.journal[{item.record_id}]"
         expect_equal(
             issues,
@@ -175,11 +177,9 @@ def validate_accounts(
 ) -> None:
     ids = [item.record_id for item in resolved if item.record_id is not None]
     base = index_by_id(client.read("account.account", ids, ["code"])) if ids else {}
-    translated = (
-        index_by_id(client.read("account.account", ids, ["name"], context={"lang": lang}))
-        if ids
-        else {}
-    )
+    translated = index_by_id(
+        client.read("account.account", ids, ["name"], context={"lang": lang})
+    ) if ids else {}
     for item in resolved:
         if item.record_id is None:
             issues.append(

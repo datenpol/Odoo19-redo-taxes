@@ -70,6 +70,21 @@ class SpecLoaderTests(unittest.TestCase):
         self.assertEqual(len(spec.journals), 13)
         self.assertEqual(len(spec.fiscal_positions), 4)
         self.assertEqual(len(spec.chart.explicit_accounts), 64)
+        optional_journal_names = {item.source_name for item in spec.journals if item.optional}
+        self.assertEqual(
+            optional_journal_names,
+            {
+                "Exchange Difference",
+                "Cash Basis Taxes",
+                "Bestandsbewertung",
+                "Kassensystem",
+                "Bargeld (Möbelhaus)",
+                "Bargeld (Kleidergeschaeft)",
+                "Bargeld (Baeckerei)",
+                "Tax Returns",
+                "Journal Loan Demo",
+            },
+        )
 
     def test_loads_german_tax_description_translation(self) -> None:
         spec = load_spec(SPEC_PATH)

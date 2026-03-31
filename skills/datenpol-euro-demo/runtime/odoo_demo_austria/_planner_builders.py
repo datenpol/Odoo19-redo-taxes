@@ -194,6 +194,8 @@ def _build_journal_operations(
 ) -> list[WriteOperation]:
     operations: list[WriteOperation] = []
     for journal in journals:
+        if journal.record_id is None:
+            continue
         operations.extend(
             build_translated_write_operations(
                 model="account.journal",
@@ -347,6 +349,8 @@ def _build_single_fiscal_position_operations(
             ),
         )
     ]
+
+
 def _ensure_operations_safe(operations: list[PlanOperation]) -> None:
     for operation in operations:
         ensure_operation_safe(operation)

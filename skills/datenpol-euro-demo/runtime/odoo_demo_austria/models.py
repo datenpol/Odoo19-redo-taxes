@@ -132,6 +132,7 @@ class JournalSpec:
     record_id: int
     source_name: str
     target_name: TranslatedText
+    optional: bool = False
 
 
 @dataclass(frozen=True)
@@ -230,7 +231,7 @@ class ResolvedTax:
 @dataclass(frozen=True)
 class ResolvedJournal:
     spec: JournalSpec
-    record_id: int
+    record_id: int | None
 
 
 @dataclass(frozen=True)

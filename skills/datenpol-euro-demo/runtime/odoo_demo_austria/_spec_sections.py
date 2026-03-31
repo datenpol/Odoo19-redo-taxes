@@ -249,6 +249,10 @@ def parse_journals(root: dict[str, Any]) -> tuple[JournalSpec, ...]:
                     item.get("target_name"),
                     f"journals[{index}].target_name",
                 ),
+                optional=require_bool(
+                    item.get("optional", False),
+                    f"journals[{index}].optional",
+                ),
             )
         )
     return tuple(journals)

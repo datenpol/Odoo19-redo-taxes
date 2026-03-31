@@ -22,6 +22,7 @@ class FakeResolverClient:
         use_translated_target_names: bool = False,
         append_copy_suffix_to_tax_names: bool = False,
         company_name_override: str | None = None,
+        missing_journal_source_names: frozenset[str] = frozenset(),
     ) -> None:
         self.spec = spec
         self.use_target_names = use_target_names
@@ -29,6 +30,7 @@ class FakeResolverClient:
         self.use_translated_target_names = use_translated_target_names
         self.append_copy_suffix_to_tax_names = append_copy_suffix_to_tax_names
         self.company_name_override = company_name_override
+        self.missing_journal_source_names = missing_journal_source_names
 
     def search_read(
         self,
@@ -58,7 +60,7 @@ class FakeResolverClient:
         if model == "account.tax":
             return [self._tax_record(domain)]
         if model == "account.journal":
-            return [self._journal_record(domain)]
+            return self._journal_records(domain)
         if model == "account.fiscal.position":
             return self._fiscal_position_records(domain)
         if model == "account.account":
@@ -125,17 +127,21 @@ class FakeResolverClient:
             "tax_group_id": [self._resolved_tax_group_id(spec.cosmetic.target_group_id), "group"],
         }
 
-    def _journal_record(self, domain: list[Any]) -> dict[str, Any]:
+    def _journal_records(self, domain: list[Any]) -> list[dict[str, Any]]:
         spec = self._match_by_name(self.spec.journals, self._domain_value(domain, "name"))
+        if spec is None or spec.source_name in self.missing_journal_source_names:
+            return []
         target_name = (
             spec.target_name.value_for("de_DE")
             if self.use_translated_target_names
             else spec.target_name.base
         )
-        return {
-            "id": spec.record_id + 1_000,
-            "name": self._name(spec.source_name, target_name),
-        }
+        return [
+            {
+                "id": spec.record_id + 1_000,
+                "name": self._name(spec.source_name, target_name),
+            }
+        ]
 
     def _fiscal_position_records(self, domain: list[Any]) -> list[dict[str, Any]]:
         spec = self._match_by_name(self.spec.fiscal_positions, self._domain_value(domain, "name"))
@@ -338,6 +344,22 @@ class ResolverTests(unittest.TestCase):
         resolved = resolve_cosmetic_targets(client, spec)
 
         self.assertEqual(resolved.company_id, spec.source_environment.company_id)
+
+    def test_skips_missing_optional_journal(self) -> None:
+        spec = load_spec(SPEC_PATH)
+        client = cast(
+            Json2Client,
+            FakeResolverClient(
+                spec,
+                use_target_names=False,
+                missing_journal_source_names=frozenset({"Kassensystem"}),
+            ),
+        )
+
+        resolved = resolve_cosmetic_targets(client, spec)
+
+        by_source_name = {item.spec.source_name: item.record_id for item in resolved.journals}
+        self.assertIsNone(by_source_name["Kassensystem"])
 
 
 if __name__ == "__main__":

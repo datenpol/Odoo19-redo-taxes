@@ -240,6 +240,11 @@ def _resolve_journals(
             fields=["id", "name"],
             order="id",
         )
+        if not records:
+            if spec.optional:
+                resolved.append(ResolvedJournal(spec=spec, record_id=None))
+                continue
+            raise Json2ClientError(f"Missing journal {spec.source_name}")
         record = _single_record(records, model="account.journal", label=spec.source_name)
         resolved.append(ResolvedJournal(spec=spec, record_id=int(record["id"])))
     return tuple(resolved)

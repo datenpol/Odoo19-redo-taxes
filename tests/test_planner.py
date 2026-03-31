@@ -191,6 +191,42 @@ class PlannerTests(unittest.TestCase):
             ],
         )
 
+    def test_plan_skips_optional_journal_without_record_id(self) -> None:
+        spec = load_spec(SPEC_PATH)
+        resolved = self._resolved_fixture(spec)
+        journals = tuple(
+            ResolvedJournal(
+                spec=item.spec,
+                record_id=None if item.spec.source_name == "Kassensystem" else item.record_id,
+            )
+            for item in resolved.journals
+        )
+
+        operations = build_cosmetic_plan(
+            spec,
+            ResolvedProject(
+                company_id=resolved.company_id,
+                company_partner_id=resolved.company_partner_id,
+                bank=resolved.bank,
+                active_company_currency=resolved.active_company_currency,
+                displaced_reference_currency=resolved.displaced_reference_currency,
+                tax_groups=resolved.tax_groups,
+                taxes=resolved.taxes,
+                journals=journals,
+                fiscal_positions=resolved.fiscal_positions,
+                accounts=resolved.accounts,
+            ),
+        )
+
+        self.assertFalse(
+            any(
+                isinstance(operation, WriteOperation)
+                and operation.model == "account.journal"
+                and operation.ids == (15,)
+                for operation in operations
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

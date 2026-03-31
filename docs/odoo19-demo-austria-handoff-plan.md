@@ -62,6 +62,55 @@ The mapping spec covers:
 - validation expectations
 - base values plus `de_DE` display values for translatable fields
 
+## Journal Optionality Policy
+
+Current resolver behavior makes every listed journal a hard preflight dependency. That is stricter than the actual business need, because the patcher only renames journals cosmetically and does not use journal IDs to drive tax, account, or fiscal-position logic.
+
+Decision:
+
+- keep a minimal required journal baseline for accounting sanity checks
+- allow clearly app-specific or demo-specific journals to be skipped when absent
+- do not market this as "works without modules installed"
+- do market this as "works when optional app journals are absent"
+
+Keep required for now:
+
+- `Sales`
+- `Purchases`
+- `Miscellaneous Operations`
+- `Bank`
+
+Safe to make optional first:
+
+- `Exchange Difference`
+- `Cash Basis Taxes`
+- `Bestandsbewertung`
+- `Kassensystem`
+- `Bargeld (Möbelhaus)`
+- `Bargeld (Kleidergeschaeft)`
+- `Bargeld (Baeckerei)`
+- `Tax Returns`
+- `Journal Loan Demo`
+
+Important constraint:
+
+- this does not make the skill work on a bare instance with no accounting setup
+- taxes, accounts, and fiscal positions remain hard dependencies elsewhere in the resolver
+
+Implementation proposal:
+
+1. Add `optional: true` support to `journals[]` entries in the mapping spec.
+2. In resolver preflight, skip missing journals only when their spec entry is marked optional.
+3. In plan building, emit no `account.journal` write operations for skipped optional journals.
+4. In validation, ignore skipped optional journals instead of reporting them as missing.
+5. Keep ambiguity as a hard failure. "Optional" should mean "safe to skip when absent", not "safe to guess when multiple matches exist".
+
+Expected effect on demos and failure modes:
+
+- demos without PoS, inventory valuation, loan-demo, or tax-return journals stop failing for those missing journals
+- core accounting baseline problems still fail early
+- operation counts can shrink on leaner demo databases, so automation must not assume fixed journal-write counts
+
 ## Implementation phases
 
 1. Baseline the untouched `San Francisco` company in `codexplayground` and export the exact records that drive visible presentation.

@@ -80,7 +80,7 @@ class GitHubInstallerSmokeTests(unittest.TestCase):
     def test_github_installer_can_install_public_skill_boundary(self) -> None:
         if not INSTALLER.exists():
             self.skipTest(f"Installer script not found: {INSTALLER}")
-        repo = os.environ.get("SKILL_INSTALL_TEST_REPO", "dmulec-dp/Odoo19-redo-taxes")
+        repo = os.environ.get("SKILL_INSTALL_TEST_REPO", "datenpol/Odoo19-redo-taxes")
         ref = os.environ.get("SKILL_INSTALL_TEST_REF", "main")
         with tempfile.TemporaryDirectory() as temp_dir:
             dest_root = Path(temp_dir) / "skills"

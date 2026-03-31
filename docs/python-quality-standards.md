@@ -33,6 +33,10 @@ If a function starts pushing against the complexity budget, split responsibiliti
 - Keep mypy clean for `src`, `tests`, and `tools`.
 - New Python code should be typed enough to pass repository mypy settings without local exceptions.
 - Prefer fixing uncertain types at the module boundary instead of suppressing errors downstream.
+- Do not introduce explicit `Any` in normal application code.
+- Acceptable exception: raw protocol-boundary code that deserializes untyped external payloads, such as Odoo JSON-2 transport helpers.
+- Even at that boundary, convert external payloads into typed primitives, dataclasses, `TypedDict`s, or small focused helper return types as early as possible.
+- Planners, validators, runtime orchestration, and business-rule helpers should consume typed values, not `dict[str, Any]` records passed through unchanged.
 
 ## Pytest
 

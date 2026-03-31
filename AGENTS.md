@@ -35,6 +35,9 @@ Whenever implementing or advising on **anything Odoo 19-specific** (models, fiel
   - `python -m pytest -q`
 - Keep Ruff clean. This includes `C901` complexity checks with a maximum complexity of `10`.
 - Keep Python files **under 400 physical lines**. Split large modules before they grow past that limit.
+- Treat explicit `Any` as a last-resort escape hatch, not a normal typing tool.
+- For Odoo 19 JSON-2 work, keep dynamic payload handling at the protocol boundary only (for example `json2_client.py`).
+- Outside that boundary, normalize payloads into typed primitives, dataclasses, `TypedDict`s, or narrowly-typed helpers before passing values deeper into planners, validators, runtimes, or tests.
 - Prefer **modular refactors** over growing single large files:
   - keep public entry points stable where useful
   - move focused logic into small helper modules when a file starts mixing concerns

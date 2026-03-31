@@ -49,25 +49,16 @@ def validate_reference_tax_surface(
 
 
 def _reference_company_id(client: Json2Client, spec: ProjectSpec) -> int:
-    records = client.search_read(
+    records = client.read(
         "res.company",
-        domain=[["name", "=", spec.reference_environment.company_name]],
-        fields=["id"],
-        order="id",
+        [spec.reference_environment.company_id],
+        ["id"],
     )
-    if not records:
+    if len(records) != 1:
         raise Json2ClientError(
-            f"Missing reference company {spec.reference_environment.company_name!r}"
+            f"Missing reference company id {spec.reference_environment.company_id}"
         )
-    ids = [int(record["id"]) for record in records]
-    if spec.reference_environment.company_id in ids:
-        return spec.reference_environment.company_id
-    if len(ids) == 1:
-        return ids[0]
-    raise Json2ClientError(
-        "Reference company lookup is ambiguous for "
-        f"{spec.reference_environment.company_name!r}: {ids!r}"
-    )
+    return int(records[0]["id"])
 
 
 def _reference_fiscal_position_id(

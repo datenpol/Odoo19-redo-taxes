@@ -66,7 +66,7 @@ def parse_source_environment(root: dict[str, Any]) -> SourceEnvironment:
             source_environment.get("company_id"),
             "source_environment.company_id",
         ),
-        company_name=require_str(
+        company_name=optional_str(
             source_environment.get("company_name"),
             "source_environment.company_name",
         ),
@@ -87,7 +87,7 @@ def parse_reference_environment(root: dict[str, Any]) -> ReferenceEnvironment:
             reference_environment.get("company_id"),
             "reference_environment.company_id",
         ),
-        company_name=require_str(
+        company_name=optional_str(
             reference_environment.get("company_name"),
             "reference_environment.company_name",
         ),

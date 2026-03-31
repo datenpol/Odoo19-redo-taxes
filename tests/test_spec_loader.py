@@ -62,6 +62,7 @@ class SpecLoaderTests(unittest.TestCase):
         self.assertTrue(spec.reference_environment.same_database)
         self.assertEqual(spec.reference_environment.company_id, 3)
         self.assertEqual(spec.reference_environment.company_name, "AT Company")
+        self.assertIsNone(spec.source_environment.company_name)
         self.assertEqual(spec.localization.primary_display_language, "de_DE")
         self.assertTrue(spec.localization.reference_snapshot_file.exists())
         self.assertEqual(spec.identity.bank.source_acc_number, "BANK134567890")
@@ -131,6 +132,30 @@ class SpecLoaderTests(unittest.TestCase):
 
         self.assertEqual(spec.localization.primary_display_language, "de_DE")
         self.assertEqual(spec.identity.bank.source_acc_number, "BANK134567890")
+
+    def test_source_company_name_is_optional(self) -> None:
+        raw_spec = yaml.safe_load(SPEC_PATH.read_text(encoding="utf-8"))
+        if raw_spec is None:
+            raise AssertionError("Expected canonical YAML spec to parse to data")
+        source_environment = raw_spec["source_environment"]
+        source_environment["company_name"] = None
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            suffix=".json",
+            prefix="spec-loader-optional-company-name-",
+            dir=ROOT / "data",
+            delete=False,
+        ) as handle:
+            json.dump(raw_spec, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+            spec_path = Path(handle.name)
+        try:
+            spec = load_spec(spec_path)
+        finally:
+            spec_path.unlink(missing_ok=True)
+
+        self.assertIsNone(spec.source_environment.company_name)
 
     def test_yaml_load_without_pyyaml_dependency_fails_clearly(self) -> None:
         module_name = "odoo_demo_austria.spec_loader"

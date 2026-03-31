@@ -28,8 +28,6 @@ class FakeReferenceTaxSurfaceClient:
         context: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         del fields, order, context
-        if model == "res.company":
-            return [{"id": 3}]
         if model == "account.fiscal.position":
             company_id = next(value for field, _operator, value in domain if field == "company_id")
             name = next(value for field, _operator, value in domain if field == "name")
@@ -69,6 +67,8 @@ class FakeReferenceTaxSurfaceClient:
         context: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         del fields, context
+        if model == "res.company":
+            return [{"id": ids[0], "name": "AT Company"}]
         if model == "account.fiscal.position":
             return [{"id": ids[0], "company_id": [1, "Datenpol Wohnatelier GmbH"]}]
         if model == "account.tax":

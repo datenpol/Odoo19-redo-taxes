@@ -21,12 +21,14 @@ class FakeResolverClient:
         use_umlaut_source_names: bool = False,
         use_translated_target_names: bool = False,
         append_copy_suffix_to_tax_names: bool = False,
+        company_name_override: str | None = None,
     ) -> None:
         self.spec = spec
         self.use_target_names = use_target_names
         self.use_umlaut_source_names = use_umlaut_source_names
         self.use_translated_target_names = use_translated_target_names
         self.append_copy_suffix_to_tax_names = append_copy_suffix_to_tax_names
+        self.company_name_override = company_name_override
 
     def search_read(
         self,
@@ -72,17 +74,22 @@ class FakeResolverClient:
         context: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         del fields, context
+        if model == "res.company":
+            return [self._company_record()]
         if model != "account.tax.group":
             raise AssertionError(f"Unexpected read model: {model}")
         return [self._tax_group_record(group_id) for group_id in ids]
 
     def _company_record(self) -> dict[str, Any]:
-        return {
-            "id": self.spec.source_environment.company_id,
-            "name": self._name(
+        company_name = self.company_name_override
+        if company_name is None:
+            company_name = self._name(
                 self.spec.source_environment.company_name,
                 self.spec.identity.company.target_company_name,
-            ),
+            )
+        return {
+            "id": self.spec.source_environment.company_id,
+            "name": company_name,
             "partner_id": [11, "Datenpol Wohnatelier GmbH"],
             "currency_id": [1, self._currency_name(active=True)],
         }
@@ -316,6 +323,21 @@ class ResolverTests(unittest.TestCase):
         by_source_name = {item.spec.source_name: item.record_id for item in resolved.journals}
         self.assertEqual(by_source_name["Bargeld (Kleidergeschaeft)"], 1_017)
         self.assertEqual(by_source_name["Bargeld (Baeckerei)"], 1_018)
+
+    def test_resolves_source_company_by_id_even_when_name_changed(self) -> None:
+        spec = load_spec(SPEC_PATH)
+        client = cast(
+            Json2Client,
+            FakeResolverClient(
+                spec,
+                use_target_names=False,
+                company_name_override="Demofirma Vertrieb West",
+            ),
+        )
+
+        resolved = resolve_cosmetic_targets(client, spec)
+
+        self.assertEqual(resolved.company_id, spec.source_environment.company_id)
 
 
 if __name__ == "__main__":

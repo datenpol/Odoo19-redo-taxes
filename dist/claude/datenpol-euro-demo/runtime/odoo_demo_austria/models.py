@@ -31,14 +31,14 @@ class SourceEnvironment:
     name: str
     url: str
     company_id: int
-    company_name: str
+    company_name: str | None
 
 
 @dataclass(frozen=True)
 class ReferenceEnvironment:
     same_database: bool
     company_id: int
-    company_name: str
+    company_name: str | None
 
 
 @dataclass(frozen=True)

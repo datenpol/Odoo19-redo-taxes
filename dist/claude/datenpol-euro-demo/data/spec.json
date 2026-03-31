@@ -4,8 +4,7 @@
   "source_environment": {
     "name": "codexplayground",
     "url": "https://codexplayground.odoo19.at/odoo",
-    "company_id": 1,
-    "company_name": "My Company (San Francisco)"
+    "company_id": 1
   },
   "reference_environment": {
     "same_database": true,

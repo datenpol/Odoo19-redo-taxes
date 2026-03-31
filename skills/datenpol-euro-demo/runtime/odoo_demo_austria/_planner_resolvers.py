@@ -60,17 +60,16 @@ def resolve_cosmetic_targets(client: Json2Client, spec: ProjectSpec) -> Resolved
         fiscal_positions=fiscal_positions,
         accounts=accounts,
     )
+
+
 def _resolve_company(client: Json2Client, spec: ProjectSpec) -> dict[str, Any]:
-    records = client.search_read(
+    company_id = spec.source_environment.company_id
+    records = client.read(
         "res.company",
-        domain=[["name", "in", list(candidate_names(
-            spec.source_environment.company_name,
-            spec.identity.company.target_company_name,
-        ))]],
-        fields=["id", "name", "partner_id", "currency_id"],
-        order="id",
+        [company_id],
+        ["id", "name", "partner_id", "currency_id"],
     )
-    return _single_record(records, model="res.company", label="source company")
+    return _single_record(records, model="res.company", label=f"source company id {company_id}")
 
 
 def _resolve_displaced_currency(

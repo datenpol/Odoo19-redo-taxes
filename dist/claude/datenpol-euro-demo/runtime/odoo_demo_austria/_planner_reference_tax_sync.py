@@ -14,7 +14,8 @@ def build_reference_tax_sync_operation(
     if not reference.same_database:
         return None
 
-    reference_company_id = _resolve_reference_company_id(client, spec)
+    reference_company_id = reference.company_id
+    reference_company_name = _read_reference_company_name(client, spec)
     fiscal_position_names = tuple(item.spec.target_name.base for item in resolved.fiscal_positions)
     _ensure_reference_fiscal_positions(
         client,
@@ -24,7 +25,9 @@ def build_reference_tax_sync_operation(
     return SyncFiscalPositionTaxesFromReferenceOperation(
         target_company_id=resolved.company_id,
         reference_company_id=reference_company_id,
-        reference_company_name=reference.company_name,
+        reference_company_name=str(
+            reference_company_name or reference.company_name or f"Company {reference_company_id}"
+        ),
         display_language=spec.localization.primary_display_language,
         fiscal_position_names=fiscal_position_names,
         reference_account_targets=_reference_account_targets(spec),
@@ -34,26 +37,17 @@ def build_reference_tax_sync_operation(
     )
 
 
-def _resolve_reference_company_id(client: Json2Client, spec: ProjectSpec) -> int:
+def _read_reference_company_name(client: Json2Client, spec: ProjectSpec) -> str | None:
     reference = spec.reference_environment
-    records = client.search_read(
+    records = client.read(
         "res.company",
-        domain=[["name", "=", reference.company_name]],
-        fields=["id", "name"],
-        order="id",
+        [reference.company_id],
+        ["id", "name"],
     )
-    if not records:
-        raise Json2ClientError(f"Missing reference company {reference.company_name!r}")
-
-    matching_ids = [int(record["id"]) for record in records]
-    if reference.company_id in matching_ids:
-        return reference.company_id
-    if len(matching_ids) == 1:
-        return matching_ids[0]
-    raise Json2ClientError(
-        "Reference company lookup is ambiguous for "
-        f"{reference.company_name!r}: got ids {matching_ids!r}"
-    )
+    if len(records) != 1:
+        raise Json2ClientError(f"Missing reference company id {reference.company_id}")
+    name = records[0].get("name")
+    return name if isinstance(name, str) else None
 
 
 def _ensure_reference_fiscal_positions(

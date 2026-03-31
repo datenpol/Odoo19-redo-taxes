@@ -102,7 +102,7 @@ class PlannerTests(unittest.TestCase):
             and operation.context is None
         )
         self.assertLess(displaced_index, active_index)
-        self.assertEqual(write_operations[displaced_index].vals["name"], "XEU")
+        self.assertEqual(write_operations[displaced_index].vals["name"], "EUM")
         self.assertEqual(write_operations[active_index].vals["name"], "EUR")
 
     def test_plan_contains_german_translation_writes(self) -> None:

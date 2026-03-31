@@ -68,8 +68,8 @@ currency:
   displaced_reference_currency:
     currency_id: 126
     source_code: EUR
-    target_code: XEU
-    target_symbol: X€
+    target_code: EUM
+    target_symbol: .€
     target_full_name:
       base: X Euro
       translations:
@@ -965,7 +965,7 @@ validation:
   api_assertions:
   - company 1 name, partner data, and bank account match the identity section
   - currency 1 is renamed to EUR-style labels in base and de_DE reads
-  - currency 126 is moved out of the way to XEUR-style labels in base and de_DE reads
+  - currency 126 is moved out of the way to EUM/.€ labels in base and de_DE reads
   - tax groups 1 and 2 match the mapping spec in base and de_DE reads
   - taxes 1 to 4 match the mapping spec fields in base and de_DE reads
   - chart account labels match the mapping spec in base and de_DE reads
